@@ -5,27 +5,28 @@ namespace Golfscript
     static class Operations
     {
 
-        static Dictionary<string, Action<Stack>> m_operations = new Dictionary<string, Action<Stack>>()
+        static Dictionary<string, Golfscript.Action> m_operations = new()
         {
             { ";", Pop },
             { "~", Evaluate },
+
             { "+", Addition },
             { "-", Subtraction },
             { "*", Multiplication },
             { "/", Division },
+
+            { "!", Negate },
+
+            { "print", Print },
         };
 
-        static Dictionary<string, Action<Golfscript>> m_operations2 = new()
+        public static void Negate(Stack context)
         {
-            { ";", Pop },
-            { "~", Evaluate },
-            { "+", Addition },
-            { "-", Subtraction },
-            { "*", Multiplication },
-            { "/", Division },
-        };
+            var item = context.Pop();
+            context.Push(new IntegerItem(item.Truthy));
+        }
 
-        public static Dictionary<string, Action<Stack>> All { get => m_operations; }
+        public static Dictionary<string, Golfscript.Action> All { get => m_operations; }
 
         //public static void BinaryOperation(Stack stack, Func<Item, Item, Item> action)
         //{
@@ -50,22 +51,28 @@ namespace Golfscript
         //    BinaryOperation(stack, (a, b) => a.Add(b)));
         //}
 
-        public static void Pop(Golfscript golfscript)
+        public static void Print(Stack context)
         {
-            golfscript.Stack.Pop();
+            var item = context.Pop();
+            Console.WriteLine(item);
         }
 
-        public static void Evaluate(Golfscript golfscript)
+        public static void Pop(Stack context)
         {
-            Item item = golfscript.Stack.Pop();
+            context.Pop();
+        }
+
+        public static void Evaluate(Stack context)
+        {
+            Item item = context.Pop();
             if (item != null)
-                item.Evaluate(golfscript);
+                item.Evaluate(context);
         }
 
-        public static void Addition(Golfscript golfscript)
+        public static void Addition(Stack context)
         {
-            Item second = golfscript.Stack.Pop();
-            Item first = golfscript.Stack.Pop();
+            Item second = context.Peek();
+            Item first = context.Pop();
 
             if (first == null || second == null)
             {
@@ -73,53 +80,50 @@ namespace Golfscript
                 return;
             }
 
+            Coerce(ref second, ref first);
+
             if (first.Type == ItemType.Integer && second.Type == ItemType.Integer)
             {
-                var value = (int)first.Value + (int)second.Value;
-                golfscript.Stack.Push(new IntegerItem(value));
+                var value = (int)first.Value! + (int)second.Value!;
+                context.Push(new IntegerItem(value));
                 return;
             }
 
 
-            if (first.Type == ItemType.Integer && second.Type == ItemType.String)
+            if (first.Type == ItemType.String && second.Type == ItemType.String)
             {
-                var value = (int)first.Value + (string)second.Value;
-                golfscript.Stack.Push(new StringItem(value));
-                return;
-            }
-
-            if (first.Type == ItemType.String && second.Type == ItemType.Integer)
-            {
-                var value = (string)first.Value + (int)second.Value;
-                golfscript.Stack.Push(new StringItem(value));
+                var value = (string)first.Value! + (string)second.Value!;
+                context.Push(new StringItem(value));
                 return;
             }
 
             Console.WriteLine("Incompatible operation");
         }
 
-        public static void Subtraction(Golfscript golfscript)
+        public static void Subtraction(Stack context)
         {
-            Item second = golfscript.Stack.Pop();
-            Item first = golfscript.Stack.Pop();
+            Item second = context.Pop();
+            Item first = context.Pop();
 
             if (first == null || second == null)
             {
                 Console.WriteLine(":v");
                 return;
             }
+
+            Coerce(ref second, ref first);
 
             if (first.Type == ItemType.Integer && second.Type == ItemType.Integer)
             {
                 var value = (int)first.Value - (int)second.Value;
-                golfscript.Stack.Push(new IntegerItem(value));
+                context.Push(new IntegerItem(value));
                 return;
             }
 
             Console.WriteLine("Incompatible operation");
         }
 
-        public static void Multiplication(Golfscript stack)
+        public static void Multiplication(Stack stack)
         {
             Item second = stack.Pop();
             Item first = stack.Pop();
@@ -140,7 +144,7 @@ namespace Golfscript
             Console.WriteLine("Incompatible operation");
         }
 
-        public static void Division(Golfscript stack)
+        public static void Division(Stack stack)
         {
             Item second = stack.Pop();
             Item first = stack.Pop();
@@ -160,68 +164,14 @@ namespace Golfscript
 
             Console.WriteLine("Incompatible operation");
         }
-    }
 
-    static class OperationManager
-    {
-        // Operator
-        static Dictionary<string, List<Overload>> operations = new Dictionary<string, List<Overload>>()
+
+        static void Coerce(ref Item second, ref Item first)
         {
-            { "+", new List<Overload>() {
-                new Overload(Operations.Addition, ItemType.Integer, ItemType.Integer),
-                new Overload(Operations.Addition, ItemType.Array, ItemType.Array),
-                new Overload(Operations.Addition, ItemType.String, ItemType.String),
-                new Overload(Operations.Addition, ItemType.Block, ItemType.Block)
-            } }
-        };
-
-        static public bool HasOperator(string op) => operations.ContainsKey(op);
-
-        static public Overload? FindOverload(string op, params ItemType[] argumentTypes)
-        {
-            if (!operations.ContainsKey(op))
-                return null;
-
-            var overloads = operations[op];
-            foreach (var overload in overloads)
-            {
-                if (overload.IsCandidate(argumentTypes))
-                    return overload;
-            }
-            return null;
-        }
-    }
-
-    struct Overload
-    {
-        List<ItemType> m_argumentTypes;
-        Action<Stack> m_function;
-
-        public List<ItemType> ArgumentTypes { get => m_argumentTypes; }
-        public Action<Stack> Function { get => m_function; }
-
-        public Overload(Action<Stack> function, params ItemType[] argumentTypes)
-        {
-            m_argumentTypes = new List<ItemType>(argumentTypes);
-            m_function = function;
-        }
-        
-        public Overload(Action<Stack> function, IEnumerable<ItemType> argumentTypes)
-        {
-            m_argumentTypes = new List<ItemType>(argumentTypes);
-            m_function = function;
-        }
-
-        public bool IsCandidate(params ItemType[] argumentTypes)
-        {
-            if (m_argumentTypes.Count < argumentTypes.Length)
-                return false;
-
-            for (int i = 0; i < argumentTypes.Length; i++)
-                if (argumentTypes[i] != m_argumentTypes[i])
-                    return false;
-            
-            return true;
+            if (first.Type < second.Type)
+                first = first.Coerce(second.Type);
+            else if (first.Type > second.Type)
+                second = second.Coerce(first.Type);
         }
     }
 }

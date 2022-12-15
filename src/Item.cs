@@ -2,18 +2,24 @@
 {
     abstract class Item
     {
-        public virtual ItemType Type { get; }
-        public virtual object? Value { get; }
+        public abstract ItemType Type { get; }
+        public abstract object? Value { get; }
+        public abstract int Truthy { get; }
 
         public bool IsBlock => Type == ItemType.Block;
         public bool IsOperation => Type == ItemType.Operation;
 
-        public virtual void Evaluate(Golfscript stack)
+        public virtual void Evaluate(Stack context)
         {
             throw new NotImplementedException();
         }
 
         public abstract Item? Coerce(ItemType type);
+
+        public virtual string Print()
+        {
+            return ToString() ?? "";
+        }
 
         #region .NET Members
 

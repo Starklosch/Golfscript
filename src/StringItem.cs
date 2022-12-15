@@ -4,6 +4,7 @@
     {
         public override ItemType Type => ItemType.String;
         public override object Value => m_value;
+        public override int Truthy => m_value.Length > 0 ? 1 : 0;
 
         public StringItem(string value)
         {
@@ -29,6 +30,11 @@
             }
 
             return null;
+        }
+
+        public override string Print()
+        {
+            return m_value;
         }
 
         public override string? ToString()

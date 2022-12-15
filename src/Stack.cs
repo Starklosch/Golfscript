@@ -33,14 +33,27 @@ namespace Golfscript
 
     class Stack
     {
-        List<Item> items = new List<Item>();
+        List<Item> items = new();
+
+        Golfscript m_golfscript;
+
+        public Golfscript Golfscript => m_golfscript;
+
+        public Stack()
+        {
+            m_golfscript = new Golfscript();
+        }
+
+        public Stack(Golfscript golfscript)
+        {
+            m_golfscript = golfscript;
+        }
 
         public void Push(Item item)
         {
-            if (item.IsOperation)
+            if (item is OperationItem operation)
             {
-                var block = item as OperationItem;
-                block.Evaluate(this);
+                operation.Evaluate(this);
                 return;
             }
 
@@ -87,19 +100,19 @@ namespace Golfscript
         public override string? ToString()
         {
             if (items.Count <= 0)
-                return "[ ]";
+                return "[]";
 
             if (items.Count == 1)
-                return $"[ {Peek()} ]";
+                return $"[{Peek()}]";
 
             var sb = new StringBuilder();
-            sb.Append("[ ");
+            sb.Append("[");
             
             foreach (var item in items)
                 sb.Append(item).Append(' ');
 
             sb.Length--;
-            sb.Append(" ]");
+            sb.Append("]");
 
             return sb.ToString();
         }

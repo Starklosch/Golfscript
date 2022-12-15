@@ -7,9 +7,9 @@
         // Parens
         LeftParen, RightParen,
         // Blocks
-        LeftCurly, RightCurly,
+        BlockBeginning, BlockEnding,
         // Strings
-        LeftSquare, RightSquare,
+        ArrayBeginning, ArrayEnding,
 
         // Operators
         Operator,

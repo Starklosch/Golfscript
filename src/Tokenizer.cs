@@ -8,40 +8,47 @@ namespace Golfscript
         {
             { '(', TokenType.LeftParen },
             { ')', TokenType.RightParen },
-            { '[', TokenType.LeftSquare },
-            { ']', TokenType.RightSquare },
-            { '{', TokenType.LeftCurly },
-            { '}', TokenType.RightCurly },
+            { '[', TokenType.ArrayBeginning },
+            { ']', TokenType.ArrayEnding },
+            { '{', TokenType.BlockBeginning },
+            { '}', TokenType.BlockEnding },
 
-            { '+', TokenType.Plus },
-            { '-', TokenType.Minus },
-            { '*', TokenType.Star },
-            { '/', TokenType.Slash },
-            { '%', TokenType.Percent },
+            { '#', TokenType.Comments },
 
-            { '~', TokenType.Tilde },
-            { '`', TokenType.GraveAccent },
-            { '!', TokenType.Bang },
-            { '?', TokenType.Question },
-            { '@', TokenType.At },
-            { '#', TokenType.Hash },
-            { '$', TokenType.Dollar },
-            { '\\', TokenType.BackSlash },
+            { '+', TokenType.Operator },
+            { '-', TokenType.Operator },
+            { '*', TokenType.Operator },
+            { '/', TokenType.Operator },
+            { '%', TokenType.Operator },
 
-            { '|', TokenType.VerticalBar },
-            { '&', TokenType.Ampersand },
-            { '^', TokenType.CircumflexAccent },
+            { '~', TokenType.Operator },
+            { '`', TokenType.Operator },
+            { '!', TokenType.Operator },
+            { '?', TokenType.Operator },
+            { '@', TokenType.Operator },
+            { '$', TokenType.Operator },
+            { '\\', TokenType.Operator },
+
+            { '|', TokenType.Operator },
+            { '&', TokenType.Operator },
+            { '^', TokenType.Operator },
             //{ '\'', TokenType.SingleQuote },
             //{ '"', TokenType.DoubleQuote },
-            { '<', TokenType.Less },
-            { '>', TokenType.Greater },
-            { '=', TokenType.Equal },
+            { '<', TokenType.Operator },
+            { '>', TokenType.Operator },
+            { '=', TokenType.Operator },
 
-            { '.', TokenType.Dot },
-            { ',', TokenType.Less },
-            { ':', TokenType.Greater },
-            { ';', TokenType.Equal },
+            { '.', TokenType.Operator },
+            { ',', TokenType.Operator },
+            { ':', TokenType.Operator },
+            { ';', TokenType.Operator },
+
             { ' ', TokenType.Space },
+        };
+
+        static readonly List<string> Operators = new()
+        {
+            "print"
         };
 
         static readonly Dictionary<char, char> EscapedChars = new()
@@ -81,9 +88,28 @@ namespace Golfscript
             return m_buffer[m_current];
         }
 
-        public void ScanTokens(IEnumerable<string> variables)
+        //public void ScanTokens(IEnumerable<string> variables)
+        //{
+        //    m_tokens.Clear();
+        //    m_current = 0;
+        //    line = 0;
+        //    lineStart = 0;
+
+        //    while (Available)
+        //    {
+        //        m_start = m_current;
+                
+        //        var token = ScanToken(variables);
+        //        if (token != null)
+        //            m_tokens.Add(token);
+        //    }
+
+        //    var eof = new Token(TokenType.EOF, "", null, line, m_buffer.Length);
+        //    m_tokens.Add(eof);
+        //}
+
+        public IEnumerable<Token> ScanTokens(Golfscript context)
         {
-            m_tokens.Clear();
             m_current = 0;
             line = 0;
             lineStart = 0;
@@ -91,31 +117,32 @@ namespace Golfscript
             while (Available)
             {
                 m_start = m_current;
-                
-                var token = ScanToken(variables);
+
+                var token = ScanToken(context.VariableNames);
                 if (token != null)
-                    m_tokens.Add(token);
+                    yield return token;
             }
 
-            var eof = new Token(TokenType.EOF, "", null, line, m_buffer.Length);
-            m_tokens.Add(eof);
+            yield return new Token(TokenType.EOF, "", null, line, m_buffer.Length);
         }
 
         Token? ScanToken(IEnumerable<string> variables)
         {
-            Advance();
-
+            // Identify variables
             foreach (var variable in variables)
             {
-                if (m_current + variable.Length - 1 > m_buffer.Length)
+                if (m_current + variable.Length > m_buffer.Length)
                     continue;
 
-                var span = m_buffer.AsSpan(m_current - 1, variable.Length);
+                var span = m_buffer.AsSpan(m_current, variable.Length);
                 if (span.Equals(variable, StringComparison.CurrentCulture))
                 {
+                    Advance(variable.Length);
                     return Token(TokenType.Identifier, variable);
                 }
             }
+
+            Advance();
 
             switch (Current)
             {
@@ -142,6 +169,19 @@ namespace Golfscript
                 return Number();
             }
 
+            foreach (var op in Operators)
+            {
+                if (m_current + op.Length - 1 > m_buffer.Length)
+                    continue;
+
+                var span = m_buffer.AsSpan(m_current - 1, op.Length);
+                if (span.Equals(op, StringComparison.CurrentCulture))
+                {
+                    Advance(op.Length - 1);
+                    return Token(TokenType.Operator, op);
+                }
+            }
+
             Console.WriteLine($"Unknown token at {line}, {Column}");
             return null;
         }
@@ -157,23 +197,24 @@ namespace Golfscript
             bool escape = false;
 
             StringBuilder sb = new();
+
             while (Available && (escape || Next != '\''))
             {
-                if (escape && Current == '\'')
+                if (Next == '\n')
+                    NewLine();
+
+                if (escape && Next == '\'')
                     sb.Length--;
-                else if (escape && Current != '\\')
+                else if (escape && Next != '\\')
                     sb.Append('\\');
 
-                if (Current == '"')
+                if (Next == '"')
                     sb.Append('\\');
 
                 sb.Append(Next);
 
                 escape = !escape && Next == '\\';
                 Advance();
-
-                if (Current == '\n')
-                    NewLine();
             }
 
             if (!Available)
@@ -181,6 +222,7 @@ namespace Golfscript
                 Console.WriteLine("Unterminated string!");
                 return null;
             }
+            Console.WriteLine(sb.ToString());
 
             Advance();
 

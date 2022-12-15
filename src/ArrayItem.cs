@@ -6,6 +6,7 @@ namespace Golfscript
     {
         public override ItemType Type => ItemType.Array;
         public override object Value => m_values;
+        public override int Truthy => m_values.Count > 0 ? 1 : 0;
 
         public ArrayItem(IEnumerable<Item> values)
         {

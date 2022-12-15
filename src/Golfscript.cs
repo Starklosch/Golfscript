@@ -8,12 +8,19 @@ namespace Golfscript
 {
     class Golfscript
     {
+        public delegate void Action(Stack context);
+
         Dictionary<string, Item> variables = new Dictionary<string, Item>();
-        Stack stack = new Stack();
+        Stack stack;
 
         public Stack Stack { get => stack; }
 
         public Dictionary<string, Item>.KeyCollection VariableNames => variables.Keys;
+
+        public Golfscript()
+        {
+            stack = new Stack(this);
+        }
 
         public void SetVariable(string name, Item? value)
         {
@@ -44,10 +51,9 @@ namespace Golfscript
             variables.Remove(name);
         }
 
-        public Tokenizer ScanTokens(string buffer) {
+        public IEnumerable<Token> ScanTokens(string buffer) {
             var tokenizer = new Tokenizer(buffer);
-            tokenizer.ScanTokens(this);
-            return tokenizer;
+            return tokenizer.ScanTokens(this);
         }
 
         public Item? this[string variable]

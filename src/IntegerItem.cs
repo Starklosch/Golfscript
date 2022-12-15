@@ -4,6 +4,7 @@
     {
         public override ItemType Type => ItemType.Integer;
         public override object Value => m_value;
+        public override int Truthy => m_value != 0 ? 1 : 0;
 
         public IntegerItem(int value)
         {

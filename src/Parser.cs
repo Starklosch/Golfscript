@@ -1,50 +1,88 @@
 ﻿namespace Golfscript
 {
 
-    class TokenProcessor
+    //class TokenProcessor
+    //{
+    //    Tokenizer m_tokenizer;
+    //    List<Item> m_items;
+
+    //    public TokenProcessor(Tokenizer tokenizer)
+    //    {
+    //        m_tokenizer = tokenizer;
+    //    }
+
+    //    public TokenProcessor(string source)
+    //    {
+    //        m_tokenizer = new Tokenizer(source);
+    //    }
+
+    //    void GetItems(string line)
+    //    {
+    //        var tokenizer = new Tokenizer(line);
+    //        //var tokenizer = golfscript.ScanTokens(line);
+    //        foreach (var token in tokenizer.ScanTokens(golfscript))
+    //        {
+    //            if (token.Type == TokenType.IdentifierDeclaration)
+    //            {
+    //                golfscript[(string)token.Literal] = new IntegerItem(123);
+    //            }
+    //            else if (token.Type == TokenType.Identifier &&
+    //                golfscript.TryGetVariable((string)token.Literal, out Item variable))
+    //            {
+    //                golfscript.Stack.Push(variable);
+    //            }
+    //            else if (token.Type == TokenType.Number)
+    //            {
+    //                golfscript.Stack.Push(new IntegerItem((int)token.Literal!));
+    //            }
+    //            else if (token.Type == TokenType.String)
+    //            {
+    //                golfscript.Stack.Push(new StringItem((string)token.Literal!));
+    //            }
+    //            else if (token.Type == TokenType.Operator &&
+    //                Operations.All.TryGetValue(token.Text, out var action))
+    //            {
+    //                golfscript.Stack.Push(new OperationItem(action));
+
+    //            }
+    //        }
+    //    }
+
+    //}
+
+    static class Parser
     {
-        Tokenizer m_tokenizer;
-        List<Item> m_items;
-
-        public TokenProcessor(Tokenizer tokenizer)
+        public static void Parse(this Golfscript golfscript, string line)
         {
-            m_tokenizer = tokenizer;
-        }
-
-        public TokenProcessor(string source)
-        {
-            m_tokenizer = new Tokenizer(source);
-
-        }
-
-        void GetItems()
-        {
-            foreach (var token in m_tokenizer.Tokens)
+            var tokenizer = new Tokenizer(line);
+            //var tokenizer = golfscript.ScanTokens(line);
+            foreach (var token in tokenizer.ScanTokens(golfscript))
             {
                 if (token.Type == TokenType.IdentifierDeclaration)
                 {
-                    golfscript[(string)token.Literal] = new IntegerItem(0);
+                    golfscript[(string)token.Literal] = golfscript.Stack.Peek();
                 }
                 else if (token.Type == TokenType.Identifier &&
-                    golfscript.TryGetVariable((string)token.Literal, out Item name))
+                    golfscript.TryGetVariable((string)token.Literal, out Item variable))
                 {
-
+                    golfscript.Stack.Push(variable);
                 }
                 else if (token.Type == TokenType.Number)
                 {
-                    golfscript.Stack.Push(new);
+                    golfscript.Stack.Push(new IntegerItem((int)token.Literal!));
                 }
-                else if (operations.TryGetValue(token.Text, out var action))
+                else if (token.Type == TokenType.String)
                 {
+                    golfscript.Stack.Push(new StringItem((string)token.Literal!));
+                }
+                else if (token.Type == TokenType.Operator &&
+                    Operations.All.TryGetValue(token.Text, out var action))
+                {
+                    golfscript.Stack.Push(new OperationItem(action));
 
                 }
             }
         }
-
-    }
-
-    static class Parser
-    {
 
         public static Item? Parse(string? input)
         {

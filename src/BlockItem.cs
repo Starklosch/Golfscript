@@ -12,11 +12,11 @@
         {
         }
 
-        public override void Evaluate(Stack stack)
+        public override void Evaluate(Stack context)
         {
             foreach (var item in m_values)
             {
-                stack.Push(this);
+                context.Push(this);
             }
         }
 
