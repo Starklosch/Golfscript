@@ -7,11 +7,28 @@ namespace Golfscript
     {
         static void Main(string[] args)
         {
+            Golfscript golfscript = new();
+
+            if (args.Length > 0)
+            {
+                foreach (var file in args)
+                {
+                    if (File.Exists(file))
+                    {
+                        string script = File.ReadAllText(file);
+                        golfscript.Parse(script);
+                    }
+                    else
+                        Console.WriteLine($"{file} doesn't exist.");
+                }
+                Console.Read();
+                return;
+            }
+
             Console.WriteLine("Golfscript Interactive Mode");
 
             string? line;
 
-            Golfscript golfscript = new();
 
 #pragma warning disable CS8600  // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8604 // Possible null reference argument.
@@ -23,13 +40,6 @@ namespace Golfscript
                 golfscript.Parse(line);
 
                 Console.WriteLine(golfscript.Stack);
-                //Console.WriteLine(string.Join(", ", tokenizer.Tokens));
-
-                //var item = Parser.Parse(line);
-                //if (item != null)
-                //    stack.Push(item);
-
-                //Console.WriteLine(stack);
             } while (line == null || !line.StartsWith("quit"));
 
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.

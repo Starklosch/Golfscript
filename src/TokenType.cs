@@ -21,7 +21,7 @@
         // and or xor print p n puts rand do while until if abs zip base V Q
 
         // Literals.
-        Identifier, IdentifierDeclaration, String, Number, Comments,
+        Identifier, IdentifierDeclaration, String, Number, Comment,
 
         // Keywords.
         Keyword,

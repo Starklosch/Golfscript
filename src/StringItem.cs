@@ -11,7 +11,7 @@
             m_value = value;
         }
 
-        public override Item? Coerce(ItemType type)
+        public override Item Coerce(ItemType type)
         {
             switch (type)
             {
@@ -25,11 +25,9 @@
                     return new ArrayItem(new StringItem(m_value));
                 case ItemType.Block:
                     return new BlockItem(new StringItem(m_value));
-                //case ItemType.Operation:
-                //    break;
             }
 
-            return null;
+            throw new InvalidOperationException("Can't coerce to " + type);
         }
 
         public override string Print()

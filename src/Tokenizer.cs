@@ -13,7 +13,7 @@ namespace Golfscript
             { '{', TokenType.BlockBeginning },
             { '}', TokenType.BlockEnding },
 
-            { '#', TokenType.Comments },
+            { '#', TokenType.Comment },
 
             { '+', TokenType.Operator },
             { '-', TokenType.Operator },
@@ -146,9 +146,14 @@ namespace Golfscript
 
             switch (Current)
             {
+                case '#':
+                    Comment();
+                    return null;
+                case '\r':
+                    return null;
                 case '\n':
                     NewLine();
-                    break;
+                    return null;
                 // Raw
                 case '\'':
                     return RawString();
@@ -186,7 +191,17 @@ namespace Golfscript
             return null;
         }
 
-        private void NewLine()
+        void Comment()
+        {
+            while (Available && Next != '\n')
+            {
+                Advance();
+            }
+
+            Advance();
+        }
+
+        void NewLine()
         {
             line++;
             lineStart = m_current;

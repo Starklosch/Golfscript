@@ -20,12 +20,12 @@
             }
         }
 
-        public override Item? Coerce(ItemType type)
+        public override Item Coerce(ItemType type)
         {
             if (type == ItemType.Block)
                 return this;
 
-            return null;
+            throw new InvalidOperationException("Can't coerce to " + type);
         }
     }
 }

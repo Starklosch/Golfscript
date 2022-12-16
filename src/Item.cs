@@ -9,17 +9,27 @@
         public bool IsBlock => Type == ItemType.Block;
         public bool IsOperation => Type == ItemType.Operation;
 
+        #region Operations
+
         public virtual void Evaluate(Stack context)
         {
             throw new NotImplementedException();
         }
 
-        public abstract Item? Coerce(ItemType type);
+        public virtual void Sort()
+        {
+            throw new NotImplementedException();
+        }
+
+        public abstract Item Coerce(ItemType type);
 
         public virtual string Print()
         {
             return ToString() ?? "";
         }
+
+        #endregion
+
 
         #region .NET Members
 

@@ -8,6 +8,8 @@ namespace Golfscript
         static Dictionary<string, Golfscript.Action> m_operations = new()
         {
             { ";", Pop },
+            { "$", Peek },
+            { "@", Rotate },
             { "~", Evaluate },
 
             { "+", Addition },
@@ -20,8 +22,36 @@ namespace Golfscript
             { "print", Print },
         };
 
+        public static void Rotate(Stack context)
+        {
+            if (context.Items < 3)
+                return;
+
+            var third = context.RemoveAt(2);
+            context.Push(third);
+        }
+
+        public static void Peek(Stack context)
+        {
+            if (context.Items == 0)
+                return;
+
+            var item = context.Pop();
+
+            if (item is IntegerItem integer)
+            {
+                var position = (int)integer.Value;
+                context.Push(context.Peek(position));
+            }
+            else if (item is ArrayItem array)
+                array.Sort();
+        }
+
         public static void Negate(Stack context)
         {
+            if (context.Items == 0)
+                return;
+
             var item = context.Pop();
             context.Push(new IntegerItem(item.Truthy));
         }
@@ -53,8 +83,11 @@ namespace Golfscript
 
         public static void Print(Stack context)
         {
+            if (context.Items == 0)
+                return;
+
             var item = context.Pop();
-            Console.WriteLine(item);
+            Console.WriteLine(item.Print());
         }
 
         public static void Pop(Stack context)
@@ -64,21 +97,20 @@ namespace Golfscript
 
         public static void Evaluate(Stack context)
         {
+            if (context.Items == 0)
+                return;
+
             Item item = context.Pop();
-            if (item != null)
-                item.Evaluate(context);
+            item.Evaluate(context);
         }
 
         public static void Addition(Stack context)
         {
-            Item second = context.Peek();
-            Item first = context.Pop();
-
-            if (first == null || second == null)
-            {
-                Console.WriteLine(":v");
+            if (context.Items < 2)
                 return;
-            }
+
+            Item second = context.Pop();
+            Item first = context.Pop();
 
             Coerce(ref second, ref first);
 
@@ -102,14 +134,11 @@ namespace Golfscript
 
         public static void Subtraction(Stack context)
         {
+            if (context.Items < 2)
+                return;
+
             Item second = context.Pop();
             Item first = context.Pop();
-
-            if (first == null || second == null)
-            {
-                Console.WriteLine(":v");
-                return;
-            }
 
             Coerce(ref second, ref first);
 

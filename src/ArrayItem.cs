@@ -18,12 +18,23 @@ namespace Golfscript
             m_values = new List<Item>(values);
         }
 
-        public override Item? Coerce(ItemType type)
+        public override Item Coerce(ItemType type)
         {
             if (type == ItemType.Array)
                 return this;
 
-            return null;
+            throw new InvalidOperationException("Can't coerce to " + type);
+        }
+
+        public override void Evaluate(Stack context)
+        {
+            foreach (var item in m_values)
+                context.Push(item);
+        }
+
+        public override void Sort()
+        {
+            m_values.Sort();
         }
 
         public override string? ToString()

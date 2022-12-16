@@ -39,6 +39,8 @@ namespace Golfscript
 
         public Golfscript Golfscript => m_golfscript;
 
+        public int Items => items.Count;
+
         public Stack()
         {
             m_golfscript = new Golfscript();
@@ -60,12 +62,11 @@ namespace Golfscript
             items.Add(item);
         }
 
-        public Item? Pop()
+        public Item Pop()
         {
             if (items.Count <= 0)
             {
-                Console.WriteLine("Empty stack!");
-                return null;
+                throw new InvalidOperationException("Empty stack!");
             }
 
             return RemoveAt(0);
@@ -89,7 +90,7 @@ namespace Golfscript
         /// </summary>
         /// <param name="index">0-based index from top of the stack.</param>
         /// <returns>The element at <paramref name="index"/></returns>
-        public Item? RemoveAt(int index)
+        public Item RemoveAt(int index)
         {
             var normalIndex = items.Count - 1 - index;
             var item = items[normalIndex];

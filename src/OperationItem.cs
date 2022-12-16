@@ -19,12 +19,12 @@
             m_value(context);
         }
 
-        public override Item? Coerce(ItemType type)
+        public override Item Coerce(ItemType type)
         {
             if (type == ItemType.Operation)
                 return this;
 
-            return null;
+            throw new InvalidOperationException("Can't coerce to " + type);
         }
 
         Golfscript.Action m_value;
