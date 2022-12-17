@@ -4,14 +4,14 @@
     {
         public override ItemType Type => ItemType.Integer;
         public override object Value => m_value;
-        public override int Truthy => m_value != 0 ? 1 : 0;
+        public override bool Truthy => m_value != 0;
 
         public IntegerItem(int value)
         {
             m_value = value;
         }
 
-        public override Item? Coerce(ItemType type)
+        public override Item Coerce(ItemType type)
         {
             switch (type)
             {
@@ -29,6 +29,26 @@
             }
 
             return null;
+        }
+
+        public override void Add(Item other)
+        {
+            m_value += (int)other.Value;
+        }
+
+        public override void Subtract(Item other)
+        {
+            m_value -= (int)other.Value;
+        }
+
+        public override void Multiply(Item other)
+        {
+            m_value *= (int)other.Value;
+        }
+
+        public override void Divide(Item other)
+        {
+            m_value /= (int)other.Value;
         }
 
         int m_value;

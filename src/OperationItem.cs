@@ -6,7 +6,7 @@
         public override object Value => m_value;
         public bool DelayedExecution => m_delayedExecution;
 
-        public override int Truthy => throw new NotImplementedException();
+        public override bool Truthy => throw new NotImplementedException();
 
         public OperationItem(Golfscript.Action value, bool delayedExecution = true)
         {
@@ -25,6 +25,30 @@
                 return this;
 
             throw new InvalidOperationException("Can't coerce to " + type);
+        }
+
+        public override void Add(Item other)
+        {
+            // TODO Implement addition
+            throw new NotImplementedException();
+        }
+
+        public override void Subtract(Item other)
+        {
+            // TODO Implement subtraction
+            throw new NotImplementedException();
+        }
+
+        public override void Multiply(Item other)
+        {
+            // TODO Implement multiplication
+            throw new NotImplementedException();
+        }
+
+        public override void Divide(Item other)
+        {
+            // TODO Implement division
+            throw new NotImplementedException();
         }
 
         Golfscript.Action m_value;

@@ -2,7 +2,7 @@
 
 namespace Golfscript
 {
-    class Tokenizer
+    class Tokenizer : ErrorReporter
     {
         static readonly Dictionary<char, TokenType> SingleCharTokens = new()
         {
@@ -54,6 +54,7 @@ namespace Golfscript
         static readonly Dictionary<char, char> EscapedChars = new()
         {
             { '\\', '\\' },
+            { '\'', '\'' },
             { 'a', '\a' },
             { 'b', '\b' },
             { 'f', '\f'},
@@ -62,53 +63,29 @@ namespace Golfscript
             { 't', '\t' },
         };
 
+        Golfscript m_context;
         List<Token> m_tokens;
         string m_buffer;
         int m_start;
         int m_current;
+        bool m_reportErrors;
 
         int line, lineStart;
 
-        public Tokenizer(string buffer)
+        public Tokenizer(Golfscript context, string code)
         {
-            m_buffer = buffer;
+            m_context = context;
+            m_buffer = code;
             m_current = 0;
             m_tokens = new List<Token>();
         }
 
-        public char Advance(int n = 1)
+        public void Advance(int n = 1)
         {
-            var ch = m_buffer[m_current];
             m_current += n;
-            return ch;
         }
 
-        public char Peek()
-        {
-            return m_buffer[m_current];
-        }
-
-        //public void ScanTokens(IEnumerable<string> variables)
-        //{
-        //    m_tokens.Clear();
-        //    m_current = 0;
-        //    line = 0;
-        //    lineStart = 0;
-
-        //    while (Available)
-        //    {
-        //        m_start = m_current;
-                
-        //        var token = ScanToken(variables);
-        //        if (token != null)
-        //            m_tokens.Add(token);
-        //    }
-
-        //    var eof = new Token(TokenType.EOF, "", null, line, m_buffer.Length);
-        //    m_tokens.Add(eof);
-        //}
-
-        public IEnumerable<Token> ScanTokens(Golfscript context)
+        public IEnumerable<Token> ScanTokens()
         {
             m_current = 0;
             line = 0;
@@ -118,7 +95,7 @@ namespace Golfscript
             {
                 m_start = m_current;
 
-                var token = ScanToken(context.VariableNames);
+                var token = ScanToken();
                 if (token != null)
                     yield return token;
             }
@@ -126,10 +103,10 @@ namespace Golfscript
             yield return new Token(TokenType.EOF, "", null, line, m_buffer.Length);
         }
 
-        Token? ScanToken(IEnumerable<string> variables)
+        Token? ScanToken()
         {
             // Identify variables
-            foreach (var variable in variables)
+            foreach (var variable in m_context.Identifiers)
             {
                 if (m_current + variable.Length > m_buffer.Length)
                     continue;
@@ -187,25 +164,11 @@ namespace Golfscript
                 }
             }
 
-            Console.WriteLine($"Unknown token at {line}, {Column}");
+            Report($"Unknown token at {line}, {Column}");
             return null;
         }
 
-        void Comment()
-        {
-            while (Available && Next != '\n')
-            {
-                Advance();
-            }
-
-            Advance();
-        }
-
-        void NewLine()
-        {
-            line++;
-            lineStart = m_current;
-        }
+        #region Tokens
 
         Token? RawString()
         {
@@ -215,42 +178,32 @@ namespace Golfscript
 
             while (Available && (escape || Next != '\''))
             {
-                if (Next == '\n')
+                Advance();
+
+                if (Current == '\n')
                     NewLine();
 
-                if (escape && Next == '\'')
-                    sb.Length--;
-                else if (escape && Next != '\\')
-                    sb.Append('\\');
+                if (escape)
+                {
+                    if (EscapedChars.TryGetValue(Current, out char value))
+                        sb.Append(value);
+                    else
+                        Report("Invalid escaped character!");
+                }
+                else if (Current != '\\')
+                    sb.Append(Current);
 
-                if (Next == '"')
-                    sb.Append('\\');
-
-                sb.Append(Next);
-
-                escape = !escape && Next == '\\';
-                Advance();
+                escape = !escape && Current == '\\';
             }
 
             if (!Available)
             {
-                Console.WriteLine("Unterminated string!");
+                Report("Unterminated string!");
                 return null;
             }
-            Console.WriteLine(sb.ToString());
 
             Advance();
 
-
-            //var literal = m_buffer.Substring(m_start + 1, m_current - m_start - 2);
-            //StringBuilder sb = new(m_current - m_start);
-            //for (int i = m_start + 1; i < m_current - 1; i++)
-            //{
-            //    if (m_buffer[i] == '\\')
-            //        sb.Append("\\\\");
-            //    else
-            //        sb.Append(m_buffer[i]);
-            //}
             return Token(TokenType.String, sb.ToString());
         }
 
@@ -272,7 +225,7 @@ namespace Golfscript
 
             if (!Available)
             {
-                Console.WriteLine("Unterminated string!");
+                Report("Unterminated string!");
                 return null;
             }
 
@@ -310,6 +263,25 @@ namespace Golfscript
             return new Token(type, text, literal, line, Column);
         }
 
+        #endregion
+
+        #region Helpers
+
+        void NewLine()
+        {
+            line++;
+            lineStart = m_current;
+        }
+
+        void Comment()
+        {
+            while (Available && Next != '\n')
+                Advance();
+
+            if (Available && Next == '\n')
+                Advance();
+        }
+
         ReadOnlySpan<char> Substring()
         {
             var length = m_current - m_start;
@@ -324,12 +296,13 @@ namespace Golfscript
             return m_buffer.AsSpan(front, length);
         }
 
+        #endregion
+
         bool Available => m_current < m_buffer.Length;
         char Current => m_buffer[m_current - 1];
         char Next => m_buffer[m_current];
         int Column => m_start - lineStart;
 
         public IReadOnlyList<Token> Tokens => m_tokens;
-        //public LexicUnit? Current => (m_index < m_buffer.Length) ? m_unit : null;
     }
 }

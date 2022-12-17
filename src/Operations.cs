@@ -4,6 +4,7 @@ namespace Golfscript
 {
     static class Operations
     {
+        public static Dictionary<string, Golfscript.Action> All { get => m_operations; }
 
         static Dictionary<string, Golfscript.Action> m_operations = new()
         {
@@ -11,6 +12,7 @@ namespace Golfscript
             { "$", Peek },
             { "@", Rotate },
             { "~", Evaluate },
+            { "`", Inspect },
 
             { "+", Addition },
             { "-", Subtraction },
@@ -22,18 +24,24 @@ namespace Golfscript
             { "print", Print },
         };
 
-        public static void Rotate(Stack context)
+        static void Inspect(Stack context)
         {
-            if (context.Items < 3)
+            var first = context.Pop();
+            context.Push(first.Coerce(ItemType.String));
+        }
+
+        static void Rotate(Stack context)
+        {
+            if (context.Size < 3)
                 return;
 
-            var third = context.RemoveAt(2);
+            var third = context.Pop(2);
             context.Push(third);
         }
 
-        public static void Peek(Stack context)
+        static void Peek(Stack context)
         {
-            if (context.Items == 0)
+            if (context.Size == 0)
                 return;
 
             var item = context.Pop();
@@ -47,160 +55,127 @@ namespace Golfscript
                 array.Sort();
         }
 
-        public static void Negate(Stack context)
+        static void Negate(Stack context)
         {
-            if (context.Items == 0)
+            if (context.Size == 0)
                 return;
 
             var item = context.Pop();
-            context.Push(new IntegerItem(item.Truthy));
+            context.Push(new IntegerItem(item.Truthy ? 0 : 1));
         }
 
-        public static Dictionary<string, Golfscript.Action> All { get => m_operations; }
-
-        //public static void BinaryOperation(Stack stack, Func<Item, Item, Item> action)
-        //{
-        //    Item first = stack.Pop();
-        //    Item second = stack.Pop();
-
-        //    if (first == null || second == null)
-        //    {
-        //        Console.WriteLine(":v");
-        //        return;
-        //    }
-
-        //    if (first.Type == ItemType.Integer && second.Type == ItemType.Integer)
-        //    {
-        //        var newItem = action(first, second);
-        //        stack.Push(newItem);
-        //    }
-        //}
-
-        //public static void Addition(Stack stack)
-        //{
-        //    BinaryOperation(stack, (a, b) => a.Add(b)));
-        //}
-
-        public static void Print(Stack context)
+        static void BinaryOperation(Stack context, Action<Item, Item> action)
         {
-            if (context.Items == 0)
+            if (context.Size < 2)
                 return;
 
+            Item? first = null, second = null;
+
+            var type = Coerce(context, ref first, ref second);
+
+            action(first, second);
+        }
+
+        static void Print(Stack context)
+        {
+            if (context.Size == 0)
+                return;
             var item = context.Pop();
             Console.WriteLine(item.Print());
         }
 
-        public static void Pop(Stack context)
+        static void Pop(Stack context)
         {
+            if (context.Size == 0)
+            {
+                Console.WriteLine("Empty stack");
+                return;
+            }
+
             context.Pop();
         }
 
-        public static void Evaluate(Stack context)
+        static void Evaluate(Stack context)
         {
-            if (context.Items == 0)
+            if (context.Size == 0)
                 return;
 
             Item item = context.Pop();
             item.Evaluate(context);
         }
 
-        public static void Addition(Stack context)
+        //static void Addition(Stack context)
+        //{
+        //    if (context.Size < 2)
+        //        return;
+
+        //    Item second = context.Pop();
+        //    Item first = context.Pop();
+
+        //    Coerce(ref second, ref first);
+
+        //    if (first.Type == ItemType.Integer && second.Type == ItemType.Integer)
+        //    {
+        //        var value = (int)first.Value! + (int)second.Value!;
+        //        context.Push(new IntegerItem(value));
+        //        return;
+        //    }
+
+
+        //    if (first.Type == ItemType.String && second.Type == ItemType.String)
+        //    {
+        //        var value = (string)first.Value! + (string)second.Value!;
+        //        context.Push(new StringItem(value));
+        //        return;
+        //    }
+
+        //    Console.WriteLine("Incompatible operation");
+        //}
+
+        static void Addition(Stack context)
         {
-            if (context.Items < 2)
-                return;
-
-            Item second = context.Pop();
-            Item first = context.Pop();
-
-            Coerce(ref second, ref first);
-
-            if (first.Type == ItemType.Integer && second.Type == ItemType.Integer)
-            {
-                var value = (int)first.Value! + (int)second.Value!;
-                context.Push(new IntegerItem(value));
-                return;
-            }
-
-
-            if (first.Type == ItemType.String && second.Type == ItemType.String)
-            {
-                var value = (string)first.Value! + (string)second.Value!;
-                context.Push(new StringItem(value));
-                return;
-            }
-
-            Console.WriteLine("Incompatible operation");
+            BinaryOperation(context, (a, b) => a.Add(b));
         }
 
-        public static void Subtraction(Stack context)
+        static void Subtraction(Stack context)
         {
-            if (context.Items < 2)
-                return;
-
-            Item second = context.Pop();
-            Item first = context.Pop();
-
-            Coerce(ref second, ref first);
-
-            if (first.Type == ItemType.Integer && second.Type == ItemType.Integer)
-            {
-                var value = (int)first.Value - (int)second.Value;
-                context.Push(new IntegerItem(value));
-                return;
-            }
-
-            Console.WriteLine("Incompatible operation");
+            BinaryOperation(context, (a, b) => a.Subtract(b));
         }
 
-        public static void Multiplication(Stack stack)
+        static void Multiplication(Stack context)
         {
-            Item second = stack.Pop();
-            Item first = stack.Pop();
-
-            if (first == null || second == null)
-            {
-                Console.WriteLine(":v");
-                return;
-            }
-
-            if (first.Type == ItemType.Integer && second.Type == ItemType.Integer)
-            {
-                var value = (int)first.Value * (int)second.Value;
-                stack.Push(new IntegerItem(value));
-                return;
-            }
-
-            Console.WriteLine("Incompatible operation");
+            BinaryOperation(context, (a, b) => a.Multiply(b));
         }
 
-        public static void Division(Stack stack)
+        static void Division(Stack context)
         {
-            Item second = stack.Pop();
-            Item first = stack.Pop();
-
-            if (first == null || second == null)
-            {
-                Console.WriteLine(":v");
-                return;
-            }
-
-            if (first.Type == ItemType.Integer && second.Type == ItemType.Integer)
-            {
-                var value = (int)first.Value / (int)second.Value;
-                stack.Push(new IntegerItem(value));
-                return;
-            }
-
-            Console.WriteLine("Incompatible operation");
+            BinaryOperation(context, (a, b) => a.Divide(b));
         }
 
-
-        static void Coerce(ref Item second, ref Item first)
+        static ItemType Coerce(Stack context, ref Item? first, ref Item? second)
         {
+            first = context.Peek(1);
+            second = context.Peek();
+
             if (first.Type < second.Type)
-                first = first.Coerce(second.Type);
-            else if (first.Type > second.Type)
+            {
+                var aux = second;
+                second = first.Coerce(second.Type);
+                first = aux;
+                context.Pop(1);
+
+                return second.Type;
+            }
+
+            if (first.Type > second.Type)
+            {
                 second = second.Coerce(first.Type);
+                context.Pop(0);
+
+                return first.Type;
+            }
+
+            return first.Type;
         }
     }
 }

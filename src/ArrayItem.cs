@@ -6,7 +6,7 @@ namespace Golfscript
     {
         public override ItemType Type => ItemType.Array;
         public override object Value => m_values;
-        public override int Truthy => m_values.Count > 0 ? 1 : 0;
+        public override bool Truthy => m_values.Count > 0;
 
         public ArrayItem(IEnumerable<Item> values)
         {
@@ -18,10 +18,37 @@ namespace Golfscript
             m_values = new List<Item>(values);
         }
 
+        public override void Add(Item other)
+        {
+            var otherCasted = (ArrayItem)other;
+            m_values.AddRange(otherCasted.m_values);
+        }
+
+        public override void Subtract(Item other)
+        {
+            // TODO Implement subtraction
+            throw new NotImplementedException();
+        }
+
+        public override void Multiply(Item other)
+        {
+            // TODO Implement multiplication
+            throw new NotImplementedException();
+        }
+
+        public override void Divide(Item other)
+        {
+            // TODO Implement division
+            throw new NotImplementedException();
+        }
+
         public override Item Coerce(ItemType type)
         {
             if (type == ItemType.Array)
                 return this;
+
+            if (type == ItemType.String)
+                return new StringItem(ToString() ?? "");
 
             throw new InvalidOperationException("Can't coerce to " + type);
         }
@@ -40,19 +67,19 @@ namespace Golfscript
         public override string? ToString()
         {
             if (m_values.Count <= 0)
-                return "[ ]";
+                return "[]";
 
             if (m_values.Count == 1)
-                return $"[ {m_values[0]} ]";
+                return $"[{m_values[0]}]";
 
             var sb = new StringBuilder();
-            sb.Append("[ ");
+            sb.Append("[");
 
             foreach (var item in m_values)
                 sb.Append(item).Append(' ');
 
             sb.Length--;
-            sb.Append(" ]");
+            sb.Append("]");
 
             return sb.ToString();
         }

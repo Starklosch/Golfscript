@@ -16,7 +16,7 @@ namespace Golfscript
                     if (File.Exists(file))
                     {
                         string script = File.ReadAllText(file);
-                        golfscript.Parse(script);
+                        golfscript.Run(script, true);
                     }
                     else
                         Console.WriteLine($"{file} doesn't exist.");
@@ -37,7 +37,7 @@ namespace Golfscript
             {
                 line = Console.ReadLine();
 
-                golfscript.Parse(line);
+                golfscript.Run(line, true);
 
                 Console.WriteLine(golfscript.Stack);
             } while (line == null || !line.StartsWith("quit"));

@@ -3,13 +3,18 @@
     abstract class Item
     {
         public abstract ItemType Type { get; }
-        public abstract object? Value { get; }
-        public abstract int Truthy { get; }
+        public abstract object Value { get; }
+        public abstract bool Truthy { get; }
 
         public bool IsBlock => Type == ItemType.Block;
         public bool IsOperation => Type == ItemType.Operation;
 
         #region Operations
+
+        public abstract void Add(Item other);
+        public abstract void Subtract(Item other);
+        public abstract void Multiply(Item other);
+        public abstract void Divide(Item other);
 
         public virtual void Evaluate(Stack context)
         {

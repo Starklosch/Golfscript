@@ -15,7 +15,7 @@ namespace Golfscript
 
         public Stack Stack { get => stack; }
 
-        public Dictionary<string, Item>.KeyCollection VariableNames => variables.Keys;
+        public IEnumerable<string> Identifiers => variables.Keys;
 
         public Golfscript()
         {
@@ -51,10 +51,19 @@ namespace Golfscript
             variables.Remove(name);
         }
 
-        public IEnumerable<Token> ScanTokens(string buffer) {
-            var tokenizer = new Tokenizer(buffer);
-            return tokenizer.ScanTokens(this);
+        public void Run(string code, bool reportErrors = false)
+        {
+            var tokenizer = new Tokenizer(this, code);
+            if (reportErrors)
+                tokenizer.Error += (sender, error) => Console.WriteLine(error);
+
+            this.Parse(tokenizer.ScanTokens());
         }
+
+        //public IEnumerable<Token> ScanTokens(string buffer) {
+        //    var tokenizer = new Tokenizer(buffer);
+        //    return tokenizer.ScanTokens(this);
+        //}
 
         public Item? this[string variable]
         {
