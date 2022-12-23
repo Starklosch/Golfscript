@@ -1,11 +1,10 @@
 ﻿namespace Golfscript
 {
-    enum ItemType
+    public enum ItemType
     {
         Integer,
         Array,
         String,
-        Block,
-        Operation
+        Block
     }
 }

@@ -6,23 +6,29 @@ using System.Threading.Tasks;
 
 namespace Golfscript
 {
-    class Golfscript
+    public class Golfscript
     {
         public delegate void Action(Stack context);
 
         Dictionary<string, Item> variables = new Dictionary<string, Item>();
-        Stack stack;
 
-        public Stack Stack { get => stack; }
+        public Stack Stack { get; }
 
         public IEnumerable<string> Identifiers => variables.Keys;
 
         public Golfscript()
         {
-            stack = new Stack(this);
+            Stack = new Stack(this);
+
+            SetVariable("n", new StringItem("\n"));
+            SetVariable("p", new BlockItem("`puts"));
+            SetVariable("and", new BlockItem("1$if"));
+            SetVariable("or", new BlockItem("1$\\if"));
+            SetVariable("xor", new BlockItem("\\!!{!}*"));
+            SetVariable("puts", new BlockItem("print n print"));
         }
 
-        public void SetVariable(string name, Item? value)
+        public void SetVariable(string name, Item value)
         {
             variables[name] = value;
         }
@@ -51,6 +57,11 @@ namespace Golfscript
             variables.Remove(name);
         }
 
+        public void ResetVariables()
+        {
+            variables.Clear();
+        }
+
         public void Run(string code, bool reportErrors = false)
         {
             var tokenizer = new Tokenizer(this, code);
@@ -59,11 +70,6 @@ namespace Golfscript
 
             this.Parse(tokenizer.ScanTokens());
         }
-
-        //public IEnumerable<Token> ScanTokens(string buffer) {
-        //    var tokenizer = new Tokenizer(buffer);
-        //    return tokenizer.ScanTokens(this);
-        //}
 
         public Item? this[string variable]
         {

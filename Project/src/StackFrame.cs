@@ -1,32 +1,35 @@
-﻿using System.Collections;
+﻿using System.Text;
 
 namespace Golfscript
 {
-    class MyStack<T> : IEnumerable<T>, IReadOnlyCollection<T>
+    public class StackFrame
     {
-        List<T> items;
+        List<Item> items;
 
-        public int Count => items.Count;
+        public int Size => items.Count;
+        public IReadOnlyCollection<Item> Items => items.AsReadOnly();
 
-        public T this[int index] {
+        public Item this[int index]
+        {
             get => Peek(index);
         }
 
-        public MyStack()
+        public StackFrame()
         {
-            items = new List<T>();
+            items = new List<Item>();
         }
 
-        public MyStack(int capacity)
+        public StackFrame(int capacity)
         {
-            items = new List<T>(capacity);
+            items = new List<Item>(capacity);
         }
 
-        public MyStack(IEnumerable<T> collection) {
-            items = new List<T>(collection);
+        public StackFrame(IEnumerable<Item> collection)
+        {
+            items = new List<Item>(collection);
         }
 
-        public void Push(T item)
+        public void Push(Item item)
         {
             items.Add(item);
         }
@@ -36,7 +39,7 @@ namespace Golfscript
         /// </summary>
         /// <param name="index">0-based index from top of the stack.</param>
         /// <returns>The element at <paramref name="index"/></returns>
-        public T Pop(int index = 0)
+        public Item Pop(int index = 0)
         {
             if (items.Count <= 0)
                 throw new InvalidOperationException("Empty stack");
@@ -52,18 +55,23 @@ namespace Golfscript
         /// </summary>
         /// <param name="index">0-based index from top of the stack.</param>
         /// <returns>The element at <paramref name="index"/></returns>
-        public T Peek(int index = 0)
+        public Item Peek(int index = 0)
         {
             var normalIndex = items.Count - 1 - index;
-            return items[index];
+            return items[normalIndex];
         }
 
-        public IEnumerator<T> GetEnumerator() => items.GetEnumerator();
+        public override string ToString()
+        {
+            if (items.Count == 0)
+                return "";
 
-        IEnumerator IEnumerable.GetEnumerator() => items.GetEnumerator();
+            StringBuilder sb = new();
+            foreach (var item in items)
+                sb.Append(item.StackString()).Append(' ');
 
-        public void Clear() => items.Clear();
-
-        public void CopyTo(T[] array, int arrayIndex) => items.CopyTo(array, arrayIndex);
+            sb.Length--;
+            return sb.ToString();
+        }
     }
 }

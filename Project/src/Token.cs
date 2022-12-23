@@ -7,14 +7,6 @@
         TokenType m_type;
         TokenInfo m_info;
 
-        //public Token(TokenType type, string text, object? literal)
-        //{
-        //    m_text = text;
-        //    m_literal = literal;
-        //    m_type = type;
-        //    m_info = null;
-        //}
-
         public Token(TokenType type, string text, object? literal, int line, int column)
         {
             m_text = text;
@@ -23,14 +15,6 @@
 
             m_info = new TokenInfo(line, column);
         }
-
-        //public void SetInfo(TokenInfo info)
-        //{
-        //    if (m_info != null)
-        //        throw new InvalidOperationException("Info already set");
-
-        //    m_info = info;
-        //}
 
         public string Text { get => m_text; }
         public object? Literal { get => m_literal; }

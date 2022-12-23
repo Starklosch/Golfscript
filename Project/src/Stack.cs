@@ -2,7 +2,7 @@
 
 namespace Golfscript
 {
-    class Stack
+    public class Stack
     {
         Golfscript m_golfscript;
         List<StackFrame> stackFrames = new();
@@ -19,12 +19,18 @@ namespace Golfscript
             PushFrame();
         }
 
+        public void Clear()
+        {
+            stackFrames.Clear();
+            PushFrame();
+        }
+
         public void PushFrame()
         {
             stackFrames.Add(new StackFrame());
         }
 
-        public StackFrame PopFrame()
+        public StackFrame PopFrame(bool pushArray = false)
         {
             var frame = stackFrames[stackFrames.Count - 1];
             stackFrames.RemoveAt(stackFrames.Count - 1);
@@ -32,25 +38,15 @@ namespace Golfscript
             if (stackFrames.Count == 0)
                 PushFrame();
 
+            if (pushArray)
+                Push(new ArrayItem(frame.Items));
             return frame;
         }
 
         public void Push(Item item)
         {
-            if (item is OperationItem operation)
-            {
-                operation.Evaluate(this);
-                return;
-            }
-
             Frame.Push(item);
         }
-
-        //public void PushAll(IEnumerable<Item> items)
-        //{
-        //    foreach (var item in items)
-        //        Push(item);
-        //}
 
         public Item Pop(int index = 0)
         {
@@ -83,7 +79,7 @@ namespace Golfscript
                 return "[]";
 
             if (Size == 1)
-                return $"[{Peek()}]";
+                return $"[{Peek().StackString()}]";
 
             var sb = new StringBuilder();
             sb.Append("[");
@@ -98,6 +94,23 @@ namespace Golfscript
             return sb.ToString();
         }
 
+        public string? TestString()
+        {
+            if (Size == 0)
+                return "";
+
+            if (Size == 1)
+                return $"{Peek().StackString()}";
+
+            var sb = new StringBuilder();
+
+            foreach (var frame in stackFrames)
+                if (frame.Size > 0)
+                    sb.Append(frame.ToString()).Append(' ');
+
+            sb.Length--;
+            return sb.ToString();
+        }
 
         #region Properties
 
@@ -114,7 +127,6 @@ namespace Golfscript
         }
         public int Frames => stackFrames.Count;
         public Golfscript Golfscript => m_golfscript;
-        //public Golfscript Runner => m_golfscript;
 
         StackFrame Frame => stackFrames.Last();
 

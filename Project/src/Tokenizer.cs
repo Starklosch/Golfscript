@@ -6,17 +6,14 @@ namespace Golfscript
     {
         static readonly Dictionary<char, TokenType> SingleCharTokens = new()
         {
-            { '(', TokenType.LeftParen },
-            { ')', TokenType.RightParen },
+            { '(', TokenType.Operator },
+            { ')', TokenType.Operator },
             { '[', TokenType.ArrayBeginning },
             { ']', TokenType.ArrayEnding },
-            { '{', TokenType.BlockBeginning },
-            { '}', TokenType.BlockEnding },
 
             { '#', TokenType.Comment },
 
             { '+', TokenType.Operator },
-            { '-', TokenType.Operator },
             { '*', TokenType.Operator },
             { '/', TokenType.Operator },
             { '%', TokenType.Operator },
@@ -32,8 +29,6 @@ namespace Golfscript
             { '|', TokenType.Operator },
             { '&', TokenType.Operator },
             { '^', TokenType.Operator },
-            //{ '\'', TokenType.SingleQuote },
-            //{ '"', TokenType.DoubleQuote },
             { '<', TokenType.Operator },
             { '>', TokenType.Operator },
             { '=', TokenType.Operator },
@@ -48,19 +43,25 @@ namespace Golfscript
 
         static readonly List<string> Operators = new()
         {
-            "print"
+            "print",
+            "base",
+            "zip",
+            "abs"
         };
 
         static readonly Dictionary<char, char> EscapedChars = new()
         {
             { '\\', '\\' },
             { '\'', '\'' },
+            { '\"', '\"' },
             { 'a', '\a' },
             { 'b', '\b' },
-            { 'f', '\f'},
-            { 'n', '\n' },
-            { 'r', '\r' },
             { 't', '\t' },
+            { 'n', '\n' },
+            { 'v', '\v' },
+            { 'f', '\f'},
+            { 'r', '\r' },
+            { 'e', '\u001B' },
         };
 
         Golfscript m_context;
@@ -68,7 +69,6 @@ namespace Golfscript
         string m_buffer;
         int m_start;
         int m_current;
-        bool m_reportErrors;
 
         int line, lineStart;
 
@@ -139,6 +139,10 @@ namespace Golfscript
                     return String();
                 case ':':
                     return IdentifierDeclaration();
+                case '{':
+                    return Block();
+                case '-':
+                    return Available && char.IsDigit(Next) ? Number() : Token(TokenType.Operator);
             }
 
             if (SingleCharTokens.ContainsKey(Current))
@@ -170,6 +174,57 @@ namespace Golfscript
 
         #region Tokens
 
+        int EscapedChar()
+        {
+            if (EscapedChars.TryGetValue(Current, out char value))
+                return value;
+
+            // Hex
+            if (Current == 'x')
+            {
+                int start = m_current;
+                for (int i = 0; i < 2; i++)
+                {
+                    if (IsHex(Next))
+                        Advance();
+                    else
+                        Report("Invalid escaped character");
+                }
+
+                if (m_current - start <= 2)
+                    return Convert.ToInt32(m_buffer.Substring(start, 2), 16);
+            }
+            //else if (char.IsDigit(Current))
+            //{
+            //    int start = m_current - 1;
+            //    for (int i = 0; i < 2; i++)
+            //    {
+            //        if (char.IsDigit(Next))
+            //            Advance();
+            //        else
+            //            Report("Invalid escaped character");
+            //    }
+
+            //    if (m_current - start <= 3)
+            //        return Convert.ToInt32(m_buffer.Substring(start, 3));
+            //}
+
+            return -1;
+        }
+
+        Token Block()
+        {
+            while (Available && Next != '}')
+            {
+                Advance();
+            }
+
+            if (Available)
+                Advance();
+
+            return Token(TokenType.Block, Substring(1, -1).ToString());
+        }
+
         Token? RawString()
         {
             bool escape = false;
@@ -183,14 +238,10 @@ namespace Golfscript
                 if (Current == '\n')
                     NewLine();
 
-                if (escape)
-                {
-                    if (EscapedChars.TryGetValue(Current, out char value))
-                        sb.Append(value);
-                    else
-                        Report("Invalid escaped character!");
-                }
-                else if (Current != '\\')
+                if (escape && Current != '\'')
+                    sb.Append('\\');
+
+                if (Current != '\\')
                     sb.Append(Current);
 
                 escape = !escape && Current == '\\';
@@ -211,16 +262,23 @@ namespace Golfscript
         {
             bool escape = false;
             StringBuilder sb = new();
-            while (Available && (escape || Next != '"'))
+            while (Available && (escape || Next != '\"'))
             {
                 Advance();
-                escape = !escape && Current == '\\';
 
                 if (Current == '\n')
                     NewLine();
 
-                if (Current != '\\' || Next != '\'')
+                if (escape)
+                {
+                    var escapedChar = EscapedChar();
+                    if (escapedChar >= 0)
+                        sb.Append((char)escapedChar);
+                }
+                else if (Current != '\\')
                     sb.Append(Current);
+
+                escape = !escape && Current == '\\';
             }
 
             if (!Available)
@@ -247,7 +305,7 @@ namespace Golfscript
 
         Token IdentifierDeclaration()
         {
-            while (Available && Next != '\n')
+            while (Available && Next != '\n' && Next != ' ')
             {
                 Advance();
             }
@@ -266,6 +324,11 @@ namespace Golfscript
         #endregion
 
         #region Helpers
+
+        bool IsHex(char c)
+        {
+            return (c >= '0' && c <= '9') || (char.ToUpper(c) >= 'A' && char.ToUpper(c) <= 'F');
+        }
 
         void NewLine()
         {
