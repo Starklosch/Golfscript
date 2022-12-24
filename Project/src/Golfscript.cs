@@ -10,7 +10,7 @@ namespace Golfscript
     {
         public delegate void Action(Stack context);
 
-        Dictionary<string, Item> variables = new Dictionary<string, Item>();
+        SortedDictionary<string, object> variables = new SortedDictionary<string, object>();
 
         public Stack Stack { get; }
 
@@ -20,20 +20,20 @@ namespace Golfscript
         {
             Stack = new Stack(this);
 
-            SetVariable("n", new StringItem("\n"));
-            SetVariable("p", new BlockItem("`puts"));
-            SetVariable("and", new BlockItem("1$if"));
-            SetVariable("or", new BlockItem("1$\\if"));
-            SetVariable("xor", new BlockItem("\\!!{!}*"));
-            SetVariable("puts", new BlockItem("print n print"));
+            ResetVariables();
         }
 
-        public void SetVariable(string name, Item value)
+        public void SetVariable(string name, object value)
         {
             variables[name] = value;
         }
 
-        public Item? GetVariable(string name)
+        public void SetVariable(string name, Action value)
+        {
+            variables[name] = value;
+        }
+
+        public object GetVariable(string name)
         {
             if (!variables.ContainsKey(name))
                 return null;
@@ -41,7 +41,7 @@ namespace Golfscript
             return variables[name];
         }
 
-        public bool TryGetVariable(string name, out Item value)
+        public bool TryGetVariable(string name, out object value)
         {
             value = default;
 
@@ -60,6 +60,49 @@ namespace Golfscript
         public void ResetVariables()
         {
             variables.Clear();
+
+            SetVariable("~", Operators.Evaluate);
+            SetVariable("`", Operators.Inspect);
+            SetVariable("!", Operators.Negate);
+            SetVariable(".", Operators.Duplicate);
+            SetVariable(";", Operators.Pop);
+            SetVariable("\\", Operators.Swap);
+            SetVariable("@", Operators.Rotate);
+            SetVariable(")", Operators.Increment);
+            SetVariable("(", Operators.Decrement);
+
+            // Coerce
+            SetVariable("+", Operators.Addition);
+            SetVariable("-", Operators.Subtraction);
+            SetVariable("|", Operators.Or);
+            SetVariable("&", Operators.And);
+            SetVariable("^", Operators.Xor);
+
+            // Order
+            SetVariable("*", Operators.Multiplication);
+            SetVariable("/", Operators.Division);
+            SetVariable("%", Operators.Modulus);
+            SetVariable("<", Operators.Less);
+            SetVariable(">", Operators.Greater);
+            SetVariable("=", Operators.Equal);
+            SetVariable("?", Operators.Pow);
+
+            // Other
+            SetVariable("$", Operators.Peek);
+            SetVariable(",", Operators.Size);
+
+            SetVariable("abs", Operators.Abs);
+            SetVariable("base", Operators.Base);
+            SetVariable("print", Operators.Print);
+            SetVariable("until", Operators.Until);
+            SetVariable("while", Operators.While);
+
+            SetVariable("n", new StringItem("\n"));
+            SetVariable("p", new BlockItem("`puts"));
+            SetVariable("and", new BlockItem("1$if"));
+            SetVariable("or", new BlockItem("1$\\if"));
+            SetVariable("xor", new BlockItem("\\!!{!}*"));
+            SetVariable("puts", new BlockItem("print n print"));
         }
 
         public void Run(string code, bool reportErrors = false)
@@ -71,7 +114,7 @@ namespace Golfscript
             this.Parse(tokenizer.ScanTokens());
         }
 
-        public Item? this[string variable]
+        public object this[string variable]
         {
             get => GetVariable(variable);
             set => SetVariable(variable, value);

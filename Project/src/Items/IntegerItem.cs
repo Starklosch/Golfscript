@@ -5,16 +5,17 @@ namespace Golfscript
     public class IntegerItem : Item
     {
         public override ItemType Type => ItemType.Integer;
-        public override object Value => RealValue;
-        public override bool Truthy => RealValue != 0;
+        public override object Value => _value;
+        public override bool Truthy => _value != 0;
         public override long Size => throw new NotImplementedException();
 
-        public char CharValue => (char)RealValue;
-        public BigInteger RealValue { get; }
+        public char CharValue => (char)_value;
+        
+        BigInteger _value;
 
         public IntegerItem(BigInteger value)
         {
-            RealValue = value;
+            _value = value;
         }
 
         public override Item Coerce(ItemType type)
@@ -27,7 +28,7 @@ namespace Golfscript
                 case ItemType.String:
                     return new StringItem(NativeString());
                 case ItemType.Array:
-                    return new ArrayItem(new IntegerItem(RealValue));
+                    return new ArrayItem(new IntegerItem(_value));
                 case ItemType.Block:
                     return new BlockItem(NativeString());
             }
@@ -37,12 +38,12 @@ namespace Golfscript
 
         public override string StackString()
         {
-            return RealValue.ToString();
+            return _value.ToString();
         }
 
         public override string NativeString()
         {
-            return RealValue.ToString();
+            return _value.ToString();
         }
     }
 }

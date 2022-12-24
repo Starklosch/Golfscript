@@ -44,15 +44,12 @@
                     return;
             }
 
-            if (token.Type == TokenType.Identifier &&
-                golfscript.TryGetVariable((string)token.Literal, out Item variable))
+            if (token.Type == TokenType.Identifier && golfscript.TryGetVariable((string)token.Text, out object variable))
             {
-                golfscript.Stack.Push(variable);
-            }
-            else if (token.Type == TokenType.Operator &&
-                Operations.All.TryGetValue(token.Text, out var action))
-            {
-                action(golfscript.Stack);
+                if (variable is Item item)
+                    golfscript.Stack.Push(item);
+                else if (variable is Golfscript.Action action)
+                    action(golfscript.Stack);
             }
         }
     }

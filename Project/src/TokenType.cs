@@ -7,9 +7,6 @@
         // Strings
         ArrayBeginning, ArrayEnding,
 
-        // Operators
-        Operator,
-
         // Literals.
         Identifier, IdentifierDeclaration, String, Number, Comment, Block,
 

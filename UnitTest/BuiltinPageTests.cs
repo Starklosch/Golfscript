@@ -139,14 +139,14 @@ namespace Golfscript.UnitTest
         [Fact]
         void RawString()
         {
-            Test("\"\\\\n\"", "'\n'");
+            Test("\"\\\\n\"", "'\\n'");
             Test("\" ' \"", "' \\' '");
         }
 
         [Fact]
         void String()
         {
-            Test("\"\n\"", "\"\n\"");
+            Test("\"\\n\"", "\"\\n\"");
             Test("\"d\"", "\"\\144\"");
         }
 
@@ -226,7 +226,7 @@ namespace Golfscript.UnitTest
 
 
         [Fact]
-        void Order()
+        void Pow()
         {
             Test("256", "2 8?");
             Test("2", "5 [4 3 5 1] ?");

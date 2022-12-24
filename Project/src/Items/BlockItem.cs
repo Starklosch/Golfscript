@@ -18,12 +18,12 @@
 
         public override string StackString()
         {
-            return $"{{{RealValue}}}";
+            return $"{{{_value}}}";
         }
 
         public override string NativeString()
         {
-            return RealValue;
+            return _value;
         }
     }
 }

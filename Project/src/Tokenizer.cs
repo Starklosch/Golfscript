@@ -4,49 +4,16 @@ namespace Golfscript
 {
     class Tokenizer : ErrorReporter
     {
+        const string IdentifierCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+        const string Operators = "~`!.;\\@()+-|&^*/%<>$,=?";
+
         static readonly Dictionary<char, TokenType> SingleCharTokens = new()
         {
-            { '(', TokenType.Operator },
-            { ')', TokenType.Operator },
             { '[', TokenType.ArrayBeginning },
             { ']', TokenType.ArrayEnding },
 
             { '#', TokenType.Comment },
-
-            { '+', TokenType.Operator },
-            { '*', TokenType.Operator },
-            { '/', TokenType.Operator },
-            { '%', TokenType.Operator },
-
-            { '~', TokenType.Operator },
-            { '`', TokenType.Operator },
-            { '!', TokenType.Operator },
-            { '?', TokenType.Operator },
-            { '@', TokenType.Operator },
-            { '$', TokenType.Operator },
-            { '\\', TokenType.Operator },
-
-            { '|', TokenType.Operator },
-            { '&', TokenType.Operator },
-            { '^', TokenType.Operator },
-            { '<', TokenType.Operator },
-            { '>', TokenType.Operator },
-            { '=', TokenType.Operator },
-
-            { '.', TokenType.Operator },
-            { ',', TokenType.Operator },
-            { ':', TokenType.Operator },
-            { ';', TokenType.Operator },
-
             { ' ', TokenType.Space },
-        };
-
-        static readonly List<string> Operators = new()
-        {
-            "print",
-            "base",
-            "zip",
-            "abs"
         };
 
         static readonly Dictionary<char, char> EscapedChars = new()
@@ -64,61 +31,47 @@ namespace Golfscript
             { 'e', '\u001B' },
         };
 
-        Golfscript m_context;
-        List<Token> m_tokens;
-        string m_buffer;
-        int m_start;
-        int m_current;
+        Golfscript _context;
+        List<Token> _tokens;
+        string _buffer;
+        int _start;
+        int _current;
 
         int line, lineStart;
 
         public Tokenizer(Golfscript context, string code)
         {
-            m_context = context;
-            m_buffer = code;
-            m_current = 0;
-            m_tokens = new List<Token>();
+            _context = context;
+            _buffer = code;
+            _current = 0;
+            _tokens = new List<Token>();
         }
 
         public void Advance(int n = 1)
         {
-            m_current += n;
+            _current += n;
         }
 
         public IEnumerable<Token> ScanTokens()
         {
-            m_current = 0;
+            _current = 0;
             line = 0;
             lineStart = 0;
 
             while (Available)
             {
-                m_start = m_current;
+                _start = _current;
 
                 var token = ScanToken();
                 if (token != null)
                     yield return token;
             }
 
-            yield return new Token(TokenType.EOF, "", null, line, m_buffer.Length);
+            yield return new Token(TokenType.EOF, "", null, line, _buffer.Length);
         }
 
         Token? ScanToken()
         {
-            // Identify variables
-            foreach (var variable in m_context.Identifiers)
-            {
-                if (m_current + variable.Length > m_buffer.Length)
-                    continue;
-
-                var span = m_buffer.AsSpan(m_current, variable.Length);
-                if (span.Equals(variable, StringComparison.CurrentCulture))
-                {
-                    Advance(variable.Length);
-                    return Token(TokenType.Identifier, variable);
-                }
-            }
-
             Advance();
 
             switch (Current)
@@ -142,7 +95,7 @@ namespace Golfscript
                 case '{':
                     return Block();
                 case '-':
-                    return Available && char.IsDigit(Next) ? Number() : Token(TokenType.Operator);
+                    return Available && char.IsDigit(Next) ? Number() : Identifier();
             }
 
             if (SingleCharTokens.ContainsKey(Current))
@@ -155,17 +108,16 @@ namespace Golfscript
                 return Number();
             }
 
-            foreach (var op in Operators)
+            if (Operators.Contains(Current))
             {
-                if (m_current + op.Length - 1 > m_buffer.Length)
-                    continue;
+                return Token(TokenType.Identifier);
+            }
 
-                var span = m_buffer.AsSpan(m_current - 1, op.Length);
-                if (span.Equals(op, StringComparison.CurrentCulture))
-                {
-                    Advance(op.Length - 1);
-                    return Token(TokenType.Operator, op);
-                }
+            if (IdentifierCharacters.Contains(Current))
+            {
+                var id = Identifier();
+                if (_context.Identifiers.Contains(id.Literal))
+                    return id;
             }
 
             Report($"Unknown token at {line}, {Column}");
@@ -180,34 +132,31 @@ namespace Golfscript
                 return value;
 
             // Hex
+            int start = _current;
+            int i;
+
             if (Current == 'x')
             {
-                int start = m_current;
-                for (int i = 0; i < 2; i++)
+                for (i = 1; i <= 2; i++)
                 {
                     if (IsHex(Next))
                         Advance();
-                    else
-                        Report("Invalid escaped character");
                 }
 
-                if (m_current - start <= 2)
-                    return Convert.ToInt32(m_buffer.Substring(start, 2), 16);
+                if (_current - start <= 2)
+                    return Convert.ToInt32(_buffer.Substring(start, i), 16);
             }
-            //else if (char.IsDigit(Current))
-            //{
-            //    int start = m_current - 1;
-            //    for (int i = 0; i < 2; i++)
-            //    {
-            //        if (char.IsDigit(Next))
-            //            Advance();
-            //        else
-            //            Report("Invalid escaped character");
-            //    }
+            else if (IsOctal(Current))
+            {
+                for (i = 1; i <= 2; i++)
+                {
+                    if (IsOctal(Next))
+                        Advance();
+                }
 
-            //    if (m_current - start <= 3)
-            //        return Convert.ToInt32(m_buffer.Substring(start, 3));
-            //}
+                if (_current - start <= 3)
+                    return Convert.ToInt32(_buffer.Substring(start - 1, i), 8);
+            }
 
             return -1;
         }
@@ -298,19 +247,29 @@ namespace Golfscript
                 Advance();
             }
 
-            var span = m_buffer.AsSpan(m_start, m_current - m_start);
+            var span = _buffer.AsSpan(_start, _current - _start);
             var number = int.Parse(Substring());
             return Token(TokenType.Number, number);
         }
 
         Token IdentifierDeclaration()
         {
-            while (Available && Next != '\n' && Next != ' ')
+            while (Available && IdentifierCharacters.Contains(Next))
             {
                 Advance();
             }
 
             return Token(TokenType.IdentifierDeclaration, Substring(1).ToString());
+        }
+
+        Token Identifier()
+        {
+            while (Available && IdentifierCharacters.Contains(Next))
+            {
+                Advance();
+            }
+
+            return Token(TokenType.Identifier, Substring().ToString());
         }
 
         Token Token(TokenType type) => Token(type, null);
@@ -330,10 +289,15 @@ namespace Golfscript
             return (c >= '0' && c <= '9') || (char.ToUpper(c) >= 'A' && char.ToUpper(c) <= 'F');
         }
 
+        bool IsOctal(char c)
+        {
+            return c >= '0' && c <= '7';
+        }
+
         void NewLine()
         {
             line++;
-            lineStart = m_current;
+            lineStart = _current;
         }
 
         void Comment()
@@ -347,25 +311,25 @@ namespace Golfscript
 
         ReadOnlySpan<char> Substring()
         {
-            var length = m_current - m_start;
-            return m_buffer.AsSpan(m_start, length);
+            var length = _current - _start;
+            return _buffer.AsSpan(_start, length);
         }
 
         ReadOnlySpan<char> Substring(int frontOffset, int backOffset = 0)
         {
-            var front = m_start + frontOffset;
-            var back = m_current + backOffset;
+            var front = _start + frontOffset;
+            var back = _current + backOffset;
             var length = back - front;
-            return m_buffer.AsSpan(front, length);
+            return _buffer.AsSpan(front, length);
         }
 
         #endregion
 
-        bool Available => m_current < m_buffer.Length;
-        char Current => m_buffer[m_current - 1];
-        char Next => m_buffer[m_current];
-        int Column => m_start - lineStart;
+        bool Available => _current < _buffer.Length;
+        char Current => _buffer[_current - 1];
+        char Next => _buffer[_current];
+        int Column => _start - lineStart;
 
-        public IReadOnlyList<Token> Tokens => m_tokens;
+        public IReadOnlyList<Token> Tokens => _tokens;
     }
 }

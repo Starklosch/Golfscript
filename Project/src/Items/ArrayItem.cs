@@ -7,11 +7,11 @@ namespace Golfscript
     public class ArrayItem : Item
     {
         public override ItemType Type => ItemType.Array;
-        public override object Value => RealValue;
-        public override bool Truthy => RealValue.Count > 0;
-        public override long Size => RealValue.Count;
+        public override object Value => _value;
+        public override bool Truthy => _value.Count > 0;
+        public override long Size => _value.Count;
 
-        public IReadOnlyList<Item> RealValue { get; }
+        List<Item> _value;
 
         // Value shown when printing in console
         public string StringValue
@@ -19,7 +19,7 @@ namespace Golfscript
             get
             {
                 StringBuilder sb = new();
-                foreach (var item in RealValue)
+                foreach (var item in _value)
                 {
                     if (item is IntegerItem integerItem)
                         sb.Append(integerItem.CharValue);
@@ -34,50 +34,37 @@ namespace Golfscript
 
         public ArrayItem(IEnumerable<Item> values)
         {
-            RealValue = values.ToList().AsReadOnly();
+            _value = values.ToList();
         }
 
         public ArrayItem(params Item[] values)
         {
-            RealValue = values.ToList().AsReadOnly();
+            _value = values.ToList();
         }
 
         public override Item Coerce(ItemType type)
         {
             if (type == ItemType.Array)
                 return this;
-            // ["abc " [37 35] [33 31]]''*
+
             if (type == ItemType.String)
-            {
                 return new StringItem(StringValue);
-                //StringBuilder sb = new();
-                //foreach (var item in RealValue)
-                //{
-                //    if (item is IntegerItem integerItem)
-                //        sb.Append(integerItem.CharValue);
-                //    else if (item is ArrayItem arrayItem)
-                //        sb.Append(arrayItem.Coerce(ItemType.String).NativeString());
-                //    else
-                //        sb.Append(item.NativeString());
-                //}
-                //return new StringItem(sb.ToString());
-            }
 
             throw new InvalidOperationException("Can't coerce to " + type);
         }
 
         public override string StackString()
         {
-            if (RealValue.Count <= 0)
+            if (_value.Count <= 0)
                 return "[]";
 
-            if (RealValue.Count == 1)
-                return $"[{RealValue.First().StackString()}]";
+            if (_value.Count == 1)
+                return $"[{_value.First().StackString()}]";
 
             var sb = new StringBuilder();
             sb.Append("[");
 
-            foreach (var item in RealValue)
+            foreach (var item in _value)
                 sb.Append(item.StackString()).Append(' ');
 
             sb.Length--;
@@ -88,12 +75,12 @@ namespace Golfscript
 
         public override string NativeString()
         {
-            if (RealValue.Count <= 0)
+            if (_value.Count <= 0)
                 return "";
 
             var sb = new StringBuilder();
 
-            foreach (var item in RealValue)
+            foreach (var item in _value)
                 sb.Append(item.StackString());
 
             return sb.ToString();

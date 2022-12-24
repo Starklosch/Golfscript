@@ -47,7 +47,7 @@
 
         public override string? ToString()
         {
-            return $"{Type}: {Value}";
+            return $"{Type}: {StackString()}";
         }
 
         #endregion
