@@ -21,7 +21,6 @@ namespace Golfscript.UnitTest
             Test("1 2 3", "[1 2 3]~");
         }
 
-
         [Fact]
         void Inspect()
         {
@@ -31,7 +30,6 @@ namespace Golfscript.UnitTest
             Test("\"{1}\"", "{1}`");
         }
 
-
         [Fact]
         void Negate()
         {
@@ -39,7 +37,6 @@ namespace Golfscript.UnitTest
             Test("0", "{asdf}!");
             Test("1", "\"\"!");
         }
-
 
         [Fact]
         void Rotate()
@@ -55,7 +52,6 @@ namespace Golfscript.UnitTest
             Test("[5 4 3 2 1]", "[5 4 3 1 2]{-1*}$");
         }
 
-
         [Fact()]
         void Add()
         {
@@ -63,7 +59,6 @@ namespace Golfscript.UnitTest
             Test("{asdf 1234}", "'asdf'{1234}+");
             Test("[1 2 3 4 5]", "[1 2 3][4 5]+");
         }
-
 
         [Fact]
         void Subtract()
@@ -73,7 +68,6 @@ namespace Golfscript.UnitTest
             Test("2", "1 2- 3+");
             Test("[5 5 4]", "[5 2 5 4 1 1][1 2]-");
         }
-
 
         [Fact]
         void Multiply()
@@ -91,7 +85,6 @@ namespace Golfscript.UnitTest
             Test("414", "'asdf'{+}*");
         }
 
-
         [Fact]
         void Divide()
         {
@@ -102,7 +95,6 @@ namespace Golfscript.UnitTest
             Test("89 [1 1 2 3 5 8 13 21 34 55 89]", "0 1 {100<} { .@+ } /");
             Test("2 3 4", "[1 2 3]{1+}/");
         }
-
 
         [Fact]
         void Modulus()
@@ -115,20 +107,17 @@ namespace Golfscript.UnitTest
             Test("[1 1 2 2 3 3]", "[1 2 3]{.}%");
         }
 
-
         [Fact]
         void Or()
         {
             Test("7", "5 3 |");
         }
 
-
         [Fact]
         void And()
         {
             Test("[1]", "[1 1 2 2][1 3]&");
         }
-
 
         [Fact]
         void Xor()
@@ -156,28 +145,24 @@ namespace Golfscript.UnitTest
             Test("[2 1]", "1 2 [\\]");
         }
 
-
         [Fact]
         void Swap()
         {
             Test("1 3 2", "1 2 3 \\");
         }
 
-
         [Fact]
-        void Asign()
+        void Assign()
         {
             Test("1 1", "1:a a");
             Test("1", "1:0;0");
         }
-
 
         [Fact]
         void Pop()
         {
             Test("1 2", "1 2 3;");
         }
-
 
         [Fact]
         void Less()
@@ -188,7 +173,6 @@ namespace Golfscript.UnitTest
             Test("{asd}", "{asdf} -1 <");
         }
 
-
         [Fact]
         void Greater()
         {
@@ -197,7 +181,6 @@ namespace Golfscript.UnitTest
             Test("[3]", "[1 2 3] 2 >");
             Test("{f}", "{asdf} -1 >");
         }
-
 
         [Fact]
         void Equal()
@@ -208,7 +191,6 @@ namespace Golfscript.UnitTest
             Test("102", "{asdf} -1 =");
         }
 
-
         [Fact]
         void Comma()
         {
@@ -217,13 +199,11 @@ namespace Golfscript.UnitTest
             Test("[1 2 4 5 7 8]", "10,{3%},");
         }
 
-
         [Fact]
         void Dot()
         {
             Test("1 2 3 3", "1 2 3.");
         }
-
 
         [Fact]
         void Pow()
@@ -233,7 +213,6 @@ namespace Golfscript.UnitTest
             Test("5", "[1 2 3 4 5 6] {.* 20>} ?");
         }
 
-
         [Fact]
         void Decrement()
         {
@@ -241,14 +220,12 @@ namespace Golfscript.UnitTest
             Test("[2 3] 1", "[1 2 3](");
         }
 
-
         [Fact]
         void Increment()
         {
             Test("6", "5)");
             Test("[1 2] 3", "[1 2 3])");
         }
-
 
         [Fact]
         void LazyBool()
@@ -259,20 +236,11 @@ namespace Golfscript.UnitTest
             Test("0", "2 [3] xor");
         }
 
-
-        [Fact]
-        void Rand()
-        {
-            Test("2", "5 rand -");
-        }
-
-
         [Fact]
         void Do()
         {
             Test("4 3 2 1 0 0", "5{1-..}do");
         }
-
 
         [Fact]
         void While()
@@ -281,7 +249,6 @@ namespace Golfscript.UnitTest
             Test("5", "5{.}{1-.}until");
         }
 
-
         [Fact]
         void If()
         {
@@ -289,13 +256,11 @@ namespace Golfscript.UnitTest
             Test("1 1", "0 2 {1.} if");
         }
 
-
         [Fact]
         void Abs()
         {
             Test("2", "-2 abs");
         }
-
 
         [Fact]
         void Zip()
@@ -303,7 +268,6 @@ namespace Golfscript.UnitTest
             Test("[[1 4 7] [2 5 8] [3 6 9]]", "[[1 2 3][4 5 6][7 8 9]]zip");
             Test("[\"a1\" \"s2\" \"d3\" \"f4\"]", "['asdf''1234']zip");
         }
-
 
         [Fact]
         void Base()

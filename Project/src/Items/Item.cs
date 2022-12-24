@@ -20,7 +20,7 @@
         #endregion
 
         #region .NET Members
-        
+
         public override int GetHashCode()
         {
             return HashCode.Combine(Type, Value);

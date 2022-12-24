@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 
 namespace Golfscript
 {
@@ -78,7 +77,7 @@ namespace Golfscript
             { '\t', @"\t" },
             { '\n', @"\n" },
             { '\v', @"\v" },
-            { '\f', @"\a"},
+            { '\f', @"\f"},
             { '\r', @"\r" },
             { '\u001B', @"\e" },
         };

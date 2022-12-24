@@ -1,18 +1,33 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Text;
 
 namespace Golfscript
 {
+    class ItemComparer : IComparer<Item>
+    {
+        public int Compare(Item? x, Item? y)
+        {
+            if (ReferenceEquals(x, y) || x == null || y == null)
+                return 0;
+
+            if (x.Type != y.Type)
+                return 0;
+
+            if (x.Type == ItemType.Integer)
+                return ((BigInteger)x.Value).CompareTo((BigInteger)y.Value);
+            else if (x.Type == ItemType.String || x.Type == ItemType.Block)
+                return ((string)x.Value).CompareTo((string)y.Value);
+
+            return 0;
+        }
+    }
+
     // Ordered naming: First is at the top of the stack
     // and last at the bottom of the stack
     static class Operators
     {
-        static IComparer<char> CharComparer = Comparer<char>.Default;
-        static IComparer<Item> ItemComparer = Comparer<Item>.Default;
+        static readonly IComparer<char> CharComparer = Comparer<char>.Default;
+        static readonly IComparer<Item> ItemComparer = new ItemComparer();
 
         static string Sort(string item)
         {
@@ -300,9 +315,9 @@ namespace Golfscript
 
                 AddItem(secondArray.ElementAt(0));
 
-                for (int i = 1; i < second.GetArray().Count(); i++)
+                for (int i = 1; i < second.GetArray().Count; i++)
                 {
-                    value.AddRange(first.GetArray());
+                    value.AddRange(firstArray);
                     AddItem(secondArray.ElementAt(i));
                 }
 
@@ -469,6 +484,7 @@ namespace Golfscript
                 context.Push(new IntegerItem(value == -1 ? 1 : 0));
             }
             // TODO: Compare arrays
+            //else if (tuple == (ItemType.Array, ItemType.Array))
             else if (tuple == (ItemType.String, ItemType.Integer))
             {
                 var position = (int)second.GetInt();
@@ -478,9 +494,9 @@ namespace Golfscript
                 if (position == 0)
                     value = "";
                 else if (position > 0)
-                    value = str.Substring(0, Math.Min(position, str.Length));
+                    value = str[..Math.Min(position, str.Length)];
                 else
-                    value = str.Substring(0, Math.Max(str.Length + position, 0));
+                    value = str[..Math.Max(str.Length + position, 0)];
 
                 context.Push(new StringItem(value));
             }
@@ -493,9 +509,9 @@ namespace Golfscript
                 if (position == 0)
                     value = "";
                 else if (position > 0)
-                    value = str.Substring(0, Math.Min(position, str.Length));
+                    value = str[..Math.Min(position, str.Length)];
                 else
-                    value = str.Substring(0, Math.Max(str.Length + position, 0));
+                    value = str[..Math.Max(str.Length + position, 0)];
 
                 context.Push(new BlockItem(value));
             }
@@ -552,9 +568,9 @@ namespace Golfscript
                 if (position == 0)
                     value = "";
                 else if (position > 0)
-                    value = str.Substring(Math.Min(position, str.Length - 1));
+                    value = str[Math.Min(position, str.Length - 1)..];
                 else
-                    value = str.Substring(Math.Max(str.Length + position, 0));
+                    value = str[Math.Max(str.Length + position, 0)..];
 
                 context.Push(new StringItem(value));
             }
@@ -567,9 +583,9 @@ namespace Golfscript
                 if (position == 0)
                     value = "";
                 else if (position > 0)
-                    value = str.Substring(Math.Min(position, str.Length - 1));
+                    value = str[Math.Min(position, str.Length - 1)..];
                 else
-                    value = str.Substring(Math.Max(str.Length + position, 0));
+                    value = str[Math.Max(str.Length + position, 0)..];
 
                 context.Push(new BlockItem(value));
             }
@@ -886,7 +902,6 @@ namespace Golfscript
             }
             else if (tuple == (ItemType.Array, ItemType.Integer))
             {
-                int i = 0;
                 var @base = first.GetInt();
 
                 BigInteger result = 0;
@@ -896,6 +911,49 @@ namespace Golfscript
                     result += item.GetInt();
                 }
                 context.Push(new IntegerItem(result));
+            }
+        }
+
+        internal static void Do(Stack context)
+        {
+            if (context.Size == 0)
+                return;
+
+            var first = context.Pop();
+
+            if (first.Type == ItemType.Block)
+            {
+                var block = first.GetString();
+
+                do
+                {
+                    context.Golfscript.Run(block);
+                } while (context.Size > 0 && context.Pop().Truthy);
+            }
+        }
+
+        internal static void If(Stack context)
+        {
+            if (context.Size < 3)
+                return;
+
+            var falseCase = context.Pop();
+            var trueCase = context.Pop();
+            var condition = context.Pop();
+
+            if (condition.Truthy)
+            {
+                if (trueCase.Type == ItemType.Block)
+                    context.Golfscript.Run(trueCase.GetString());
+                else
+                    context.Push(trueCase);
+            }
+            else
+            {
+                if (falseCase.Type == ItemType.Block)
+                    context.Golfscript.Run(falseCase.GetString());
+                else
+                    context.Push(falseCase);
             }
         }
 
@@ -958,7 +1016,23 @@ namespace Golfscript
                 return;
 
             var first = context.Pop();
-            Console.WriteLine(first.NativeString());
+            Console.Write(first.NativeString());
+        }
+
+        internal static void Rand(Stack context)
+        {
+            if (context.Size == 0)
+                return;
+
+
+            var first = context.Pop();
+
+            if (first.Type != ItemType.Integer)
+                return;
+
+            // TODO: Random but for BigInteger
+            var random = Random.Shared.Next((int)first.GetInt());
+            context.Push(new IntegerItem(random));
         }
 
         internal static void Size(Stack context)
@@ -1075,11 +1149,7 @@ namespace Golfscript
         static (ItemType Higher, ItemType Lower) Order(ref Item higher, ref Item lower)
         {
             if (higher.Type < lower.Type)
-            {
-                var aux = higher;
-                higher = lower;
-                lower = aux;
-            }
+                (lower, higher) = (higher, lower);
 
             return MakeTuple(higher, lower);
         }

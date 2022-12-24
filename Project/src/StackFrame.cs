@@ -2,9 +2,9 @@
 
 namespace Golfscript
 {
-    public class StackFrame
+    public class StackFrame : IResignable<List<Item>>
     {
-        List<Item> items;
+        List<Item>? items;
 
         public int Size => items.Count;
         public IReadOnlyCollection<Item> Items => items.AsReadOnly();
@@ -72,6 +72,13 @@ namespace Golfscript
 
             sb.Length--;
             return sb.ToString();
+        }
+
+        public List<Item> Resign()
+        {
+            var temp = items;
+            items = null;
+            return temp;
         }
     }
 }

@@ -6,9 +6,10 @@
         // Single-character tokens.
         // Strings
         ArrayBeginning, ArrayEnding,
+        BlockBeginning, BlockEnding,
 
         // Literals.
-        Identifier, IdentifierDeclaration, String, Number, Comment, Block,
+        Identifier, IdentifierDeclaration, String, RawString, Number, Comment, Block,
 
         // Keywords.
         Keyword,

@@ -9,11 +9,15 @@
 
   <ItemGroup>
     <Compile Remove="src\OperationRunner.cs" />
+    <Compile Remove="src\Tokenizer\NormalTokenizer.cs" />
+    <Compile Remove="src\Tokenizer\Tokenizer.cs" />
     <Compile Remove="Tests.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="src\OperationRunner.cs" />
+    <None Include="src\Tokenizer\NormalTokenizer.cs" />
+    <None Include="src\Tokenizer\Tokenizer.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.Numerics;
-using System.Text;
+﻿using System.Text;
 
 namespace Golfscript
 {
-    public class ArrayItem : Item
+    public class ArrayItem : Item, IResignable<List<Item>>
     {
         public override ItemType Type => ItemType.Array;
         public override object Value => _value;
@@ -32,9 +30,19 @@ namespace Golfscript
             }
         }
 
-        public ArrayItem(IEnumerable<Item> values)
+        public ArrayItem(IResignable<List<Item>> movable)
         {
-            _value = values.ToList();
+            _value = movable.Resign();
+        }
+
+        public ArrayItem(List<Item> list, bool takeList = true)
+        {
+            _value = takeList ? list : list.ToList();
+        }
+
+        public ArrayItem(IEnumerable<Item> enumerable)
+        {
+            _value = enumerable.ToList();
         }
 
         public ArrayItem(params Item[] values)
@@ -84,6 +92,13 @@ namespace Golfscript
                 sb.Append(item.StackString());
 
             return sb.ToString();
+        }
+
+        public List<Item> Resign()
+        {
+            var temp = _value;
+            _value = new List<Item>();
+            return temp;
         }
     }
 }

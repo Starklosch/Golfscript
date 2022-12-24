@@ -30,7 +30,7 @@ namespace Golfscript
             stackFrames.Add(new StackFrame());
         }
 
-        public StackFrame PopFrame(bool pushArray = false)
+        public StackFrame? PopFrame(bool pushArray = false)
         {
             var frame = stackFrames[stackFrames.Count - 1];
             stackFrames.RemoveAt(stackFrames.Count - 1);
@@ -39,7 +39,11 @@ namespace Golfscript
                 PushFrame();
 
             if (pushArray)
-                Push(new ArrayItem(frame.Items));
+            {
+                Push(new ArrayItem(frame));
+                return null;
+            }
+
             return frame;
         }
 
@@ -127,6 +131,7 @@ namespace Golfscript
         }
         public int Frames => stackFrames.Count;
         public Golfscript Golfscript => m_golfscript;
+        //public Golfscript Runner => m_golfscript;
 
         StackFrame Frame => stackFrames.Last();
 

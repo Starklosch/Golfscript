@@ -1,13 +1,12 @@
-﻿using BenchmarkDotNet.Running;
-using System.Linq;
-
-namespace Golfscript
+﻿namespace Golfscript
 {
+
     class Program
     {
-
         static void Main(string[] args)
         {
+            //Format();
+
             Golfscript golfscript = new();
 
             if (args.Length > 0)
@@ -29,7 +28,6 @@ namespace Golfscript
             Console.WriteLine("Golfscript Interactive Mode");
 
             string? line;
-
 
 #pragma warning disable CS8600  // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8604 // Possible null reference argument.

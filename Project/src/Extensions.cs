@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace Golfscript
 {
@@ -58,47 +54,24 @@ namespace Golfscript
             return union.Difference(intersection);
         }
 
-
         public static string Format<T>(this IEnumerable<T> array)
         {
-            if (array.Count() <= 0)
+            if (!array.Any())
                 return "[]";
 
             if (array.Count() == 1)
                 return $"[{array.First()}]";
 
             var sb = new StringBuilder();
-            sb.Append("[");
+            sb.Append('[');
 
             foreach (var item in array)
                 sb.Append(item).Append(' ');
 
             sb.Length--;
-            sb.Append("]");
+            sb.Append(']');
 
             return sb.ToString();
         }
-
-        //public static string Join<T>(this IEnumerable<T> array, char separator, Func<T, string> predicate)
-        //{
-        //    var sb = new StringBuilder();
-        //    foreach (var item in array)
-        //        sb.Append(predicate(item)).Append(separator);
-
-        //    sb.Length--;
-
-        //    return sb.ToString();
-        //}
-
-        //public static string Join<T>(this IEnumerable<T> array, string separator, Func<T, string> predicate)
-        //{
-        //    var sb = new StringBuilder();
-        //    foreach (var item in array)
-        //        sb.Append(predicate(item)).Append(separator);
-
-        //    sb.Length -= separator.Length;
-
-        //    return sb.ToString();
-        //}
     }
 }

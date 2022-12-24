@@ -10,7 +10,7 @@ namespace Golfscript
         public override long Size => throw new NotImplementedException();
 
         public char CharValue => (char)_value;
-        
+
         BigInteger _value;
 
         public IntegerItem(BigInteger value)

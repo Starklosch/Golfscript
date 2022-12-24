@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Golfscript
+﻿namespace Golfscript
 {
     public class Golfscript
     {
@@ -13,6 +7,7 @@ namespace Golfscript
         SortedDictionary<string, object> variables = new SortedDictionary<string, object>();
 
         public Stack Stack { get; }
+        Parser Parser => new Parser(this);
 
         public IEnumerable<string> Identifiers => variables.Keys;
 
@@ -23,7 +18,7 @@ namespace Golfscript
             ResetVariables();
         }
 
-        public void SetVariable(string name, object value)
+        public void SetVariable(string name, Item value)
         {
             variables[name] = value;
         }
@@ -33,7 +28,7 @@ namespace Golfscript
             variables[name] = value;
         }
 
-        public object GetVariable(string name)
+        public object? GetVariable(string name)
         {
             if (!variables.ContainsKey(name))
                 return null;
@@ -41,7 +36,7 @@ namespace Golfscript
             return variables[name];
         }
 
-        public bool TryGetVariable(string name, out object value)
+        public bool TryGetVariable(string name, out object? value)
         {
             value = default;
 
@@ -93,8 +88,11 @@ namespace Golfscript
 
             SetVariable("abs", Operators.Abs);
             SetVariable("base", Operators.Base);
+            SetVariable("do", Operators.Do);
+            SetVariable("if", Operators.If);
             SetVariable("print", Operators.Print);
             SetVariable("until", Operators.Until);
+            SetVariable("rand", Operators.Until);
             SetVariable("while", Operators.While);
 
             SetVariable("n", new StringItem("\n"));
@@ -107,17 +105,11 @@ namespace Golfscript
 
         public void Run(string code, bool reportErrors = false)
         {
-            var tokenizer = new Tokenizer(this, code);
+            var tokenizer = new RegexTokenizer(this, code);
             if (reportErrors)
                 tokenizer.Error += (sender, error) => Console.WriteLine(error);
 
-            this.Parse(tokenizer.ScanTokens());
-        }
-
-        public object this[string variable]
-        {
-            get => GetVariable(variable);
-            set => SetVariable(variable, value);
+            Parser.Parse(tokenizer.ScanTokens());
         }
     }
 }
