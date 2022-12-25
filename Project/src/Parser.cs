@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -100,9 +102,6 @@ namespace Golfscript
                     return;
                 case TokenType.Number:
                     Context.Stack.Push(new IntegerItem(ParseInt(token.Text)));
-                    return;
-                case TokenType.Block:
-                    Context.Stack.Push(new BlockItem(ParseString(token.Text)));
                     return;
             }
 

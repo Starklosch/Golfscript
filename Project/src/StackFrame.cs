@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Golfscript
 {
@@ -66,7 +68,7 @@ namespace Golfscript
             if (items.Count == 0)
                 return "";
 
-            StringBuilder sb = new();
+            var sb = new StringBuilder();
             foreach (var item in items)
                 sb.Append(item.StackString()).Append(' ');
 

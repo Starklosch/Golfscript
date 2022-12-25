@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace Golfscript
 {
@@ -16,7 +19,7 @@ namespace Golfscript
         {
             get
             {
-                StringBuilder sb = new();
+                var sb = new StringBuilder();
                 foreach (var item in _value)
                 {
                     if (item is IntegerItem integerItem)

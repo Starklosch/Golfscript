@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Golfscript
 {
@@ -47,7 +49,7 @@ namespace Golfscript
 
         public override string StackString()
         {
-            StringBuilder sb = new();
+            var sb = new StringBuilder();
             foreach (var ch in _value)
             {
                 if (Escaped.TryGetValue(ch, out string escaped))

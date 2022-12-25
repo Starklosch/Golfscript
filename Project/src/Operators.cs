@@ -1,4 +1,7 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using System.Text;
 
 namespace Golfscript
@@ -28,6 +31,7 @@ namespace Golfscript
     {
         static readonly IComparer<char> CharComparer = Comparer<char>.Default;
         static readonly IComparer<Item> ItemComparer = new ItemComparer();
+        static readonly Random RNG = new Random();
 
         static string Sort(string item)
         {
@@ -1031,7 +1035,7 @@ namespace Golfscript
                 return;
 
             // TODO: Random but for BigInteger
-            var random = Random.Shared.Next((int)first.GetInt());
+            var random = RNG.Next((int)first.GetInt());
             context.Push(new IntegerItem(random));
         }
 

@@ -1,4 +1,7 @@
-﻿namespace Golfscript
+﻿using System;
+using System.Collections.Generic;
+
+namespace Golfscript
 {
     public class Golfscript
     {

@@ -1,4 +1,6 @@
-﻿namespace Golfscript
+﻿using System;
+
+namespace Golfscript
 {
     public abstract class Item : IEquatable<Item>
     {

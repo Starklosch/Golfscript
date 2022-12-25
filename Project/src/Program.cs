@@ -1,4 +1,7 @@
-﻿namespace Golfscript
+﻿using System;
+using System.IO;
+
+namespace Golfscript
 {
 
     class Program
@@ -7,7 +10,7 @@
         {
             //Format();
 
-            Golfscript golfscript = new();
+            var golfscript = new Golfscript();
 
             if (args.Length > 0)
             {
@@ -29,9 +32,6 @@
 
             string? line;
 
-#pragma warning disable CS8600  // Converting null literal or possible null value to non-nullable type.
-#pragma warning disable CS8604 // Possible null reference argument.
-
             do
             {
                 Console.Write("> ");
@@ -41,9 +41,6 @@
 
                 Console.WriteLine(golfscript.Stack);
             } while (line == null || !line.StartsWith("quit"));
-
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-#pragma warning restore CS8604 // Possible null reference argument.
 
         }
 
@@ -59,33 +56,31 @@
             Console.WriteLine("Save to?");
             file = Console.ReadLine();
 
-            using (var stream = new StreamWriter(file))
+            using var stream = new StreamWriter(file);
+            stream.WriteLine("[Fact]");
+            stream.WriteLine("void Function(){");
+
+            foreach (string line in lines)
             {
-                stream.WriteLine("[Fact]");
-                stream.WriteLine("void Function(){");
-
-                foreach (string line in lines)
+                if (line.StartsWith("args"))
                 {
-                    if (line.StartsWith("args"))
-                    {
-                        stream.WriteLine("}\n\n");
-                        stream.WriteLine("[Fact]");
-                        stream.WriteLine("void Function(){");
-                    }
-
-                    if (!line.Contains(SEPARATOR))
-                        continue;
-
-                    var split = line.Split(SEPARATOR);
-                    var code = split[0].Trim().Replace("\"", "\\\"").Replace("\\", "\\\\");
-                    var expected = split[1].Trim().Replace("\"", "\\\"").Replace("\\", "\\\\");
-
-                    stream.Write("    Test(\"");
-                    stream.Write(code);
-                    stream.Write("\", \"");
-                    stream.Write(expected);
-                    stream.WriteLine("\");");
+                    stream.WriteLine("}\n\n");
+                    stream.WriteLine("[Fact]");
+                    stream.WriteLine("void Function(){");
                 }
+
+                if (!line.Contains(SEPARATOR))
+                    continue;
+
+                var split = line.Split(SEPARATOR);
+                var code = split[0].Trim().Replace("\"", "\\\"").Replace("\\", "\\\\");
+                var expected = split[1].Trim().Replace("\"", "\\\"").Replace("\\", "\\\\");
+
+                stream.Write("    Test(\"");
+                stream.Write(code);
+                stream.Write("\", \"");
+                stream.Write(expected);
+                stream.WriteLine("\");");
             }
         }
     }

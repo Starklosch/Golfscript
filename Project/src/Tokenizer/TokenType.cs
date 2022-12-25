@@ -9,7 +9,7 @@
         BlockBeginning, BlockEnding,
 
         // Literals.
-        Identifier, IdentifierDeclaration, String, RawString, Number, Comment, Block,
+        Identifier, IdentifierDeclaration, String, RawString, Number, Comment,
 
         // Keywords.
         Keyword,

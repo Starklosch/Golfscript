@@ -1,25 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+	<TargetFramework>net6.0</TargetFramework>
+	<RollForward>Major</RollForward>
+	  
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
 
     <PlatformTarget>AnyCPU</PlatformTarget>
-
     <StartupObject></StartupObject>
+    <OutputType>Library</OutputType>
+    <SignAssembly>False</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Project\**" />
     <EmbeddedResource Remove="Project\**" />
     <None Remove="Project\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Golfscript.csproj" />
   </ItemGroup>
 
   <ItemGroup>
