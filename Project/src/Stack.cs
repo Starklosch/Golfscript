@@ -68,8 +68,9 @@ namespace Golfscript
 
         StackFrame? FindFrame(ref int index)
         {
-            foreach (var frame in stackFrames)
+            for (int i = stackFrames.Count - 1; i >= 0; i--)
             {
+                var frame = stackFrames[i];
                 if (frame.Size > index)
                     return frame;
 

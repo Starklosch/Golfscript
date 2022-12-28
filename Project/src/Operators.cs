@@ -390,24 +390,64 @@ namespace Golfscript
                 var value = second.GetInt() / first.GetInt();
                 result = new IntegerItem(value);
             }
+            #region Split Matches
             else if (tuple == (ItemType.String, ItemType.String))
             {
-                var separator = second.GetString();
-                var split = first.GetString().Split(separator);
-                var value = split.Where(str => str.Length > 0).Select(str => new StringItem(str));
+                var separator = first.GetString();
+                var split = second.GetString().Split(separator);
+                var value = split.Select(str => new StringItem(str));
                 result = new ArrayItem(value);
             }
-            // TODO: Array implementation
-            //else if (tuple == (ItemType.Array, ItemType.Array))
-            //{
-            //    var separator = second.GetArray();
-            //    var split = first.GetArray().Split(separator);
-            //    var value = split.Where(str => str.Length > 0).Select(str => new StringItem(str));
-            //    result = new ArrayItem(value);
-            //}
+            else if (tuple == (ItemType.Array, ItemType.Array))
+            {
+                var separator = first.GetArray();
+                var split = second.GetArray().Split(separator);
+                var value = split.Select(str => new ArrayItem(str));
+                result = new ArrayItem(value);
+            }
+            #endregion
+            #region Split Size
+            else if (tuple == (ItemType.String, ItemType.Integer))
+            {
+                var size = (int)second.GetInt();
+                var split = first.GetString().Chunk(size);
+                var value = split.Select(str => new StringItem(str));
+                result = new ArrayItem(value);
+            }
+            else if (tuple == (ItemType.Array, ItemType.Integer))
+            {
+                var size = (int)second.GetInt();
+                var split = first.GetArray().Chunk(size);
+                var value = split.Select(arr => new ArrayItem(arr));
+                result = new ArrayItem(value);
+            }
+            #endregion
             else if (tuple == (ItemType.Block, ItemType.Array))
             {
                 Each(context, first, second);
+                return;
+            }
+            else if (tuple == (ItemType.Block, ItemType.Block))
+            {
+                var condition = second.GetString();
+                var code = first.GetString();
+
+                var list = new List<Item>();
+
+                while (true)
+                {
+                    Duplicate(context);
+                    context.Golfscript.Run(condition);
+
+                    if (!context.Pop().Truthy)
+                        break;
+
+                    list.Add(context.Peek());
+                    context.Golfscript.Run(code);
+                }
+
+                context.Pop();
+                context.Push(new ArrayItem(list));
                 return;
             }
             else
@@ -721,6 +761,24 @@ namespace Golfscript
                 var value = first.GetString();
                 var index = str.IndexOf(value);
                 context.Push(new IntegerItem(index));
+            }
+            else if (tuple == (ItemType.Block, ItemType.Array))
+            {
+                var array = second.GetArray();
+                var condition = first.GetString();
+
+                foreach (var item in array)
+                {
+                    context.Push(item);
+                    context.Golfscript.Run(condition);
+
+                    if (context.Pop().Truthy)
+                    {
+                        context.Push(item);
+                        break;
+                    }
+                }
+                return;
             }
             else if (first.Type == ItemType.Array)
             {

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Transactions;
 
 namespace Golfscript
 {
@@ -13,6 +14,33 @@ namespace Golfscript
                 if (!right.Contains(item))
                     yield return item;
             }
+        }
+
+        public static IEnumerable<int> FindAll<T>(this List<T> left, List<T> right, int offset = 0)
+        {
+            int match = 0;
+            for (int i = 0; i < left.Count; i++)
+            {
+                if (match == right.Count)
+                {
+                    yield return i - right.Count;
+                    match = 0;
+                }
+
+                match = left[i].Equals(right[match]) ? match + 1 : 0;
+            }
+        }
+
+
+        public static IEnumerable<IEnumerable<T>> Split<T>(this List<T> left, List<T> right)
+        {
+            int start = 0;
+            foreach (var index in left.FindAll(right))
+            {
+                yield return left.GetRange(start, index - start);
+                start = index + right.Count;
+            }
+            yield return left.GetRange(start, left.Count - start);
         }
 
         public static IEnumerable<T> SymmetricDifference<T>(this IEnumerable<T> left, IEnumerable<T> right)
