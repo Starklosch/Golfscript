@@ -97,6 +97,7 @@ namespace Golfscript
             SetVariable("until", Operators.Until);
             SetVariable("rand", Operators.Rand);
             SetVariable("while", Operators.While);
+            SetVariable("zip", Operators.Zip);
 
             SetVariable("n", new StringItem("\n"));
             SetVariable("p", new BlockItem("`puts"));

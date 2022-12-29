@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -458,10 +460,10 @@ namespace Golfscript
             context.Push(result);
         }
 
-        internal static void Each(Stack context, Item first, Item second)
+        internal static void Each(Stack context, Item str, Item array)
         {
-            var code = first.GetString();
-            foreach (var item in second.GetArray())
+            var code = str.GetString();
+            foreach (var item in array.GetArray())
             {
                 context.Push(item);
                 context.Golfscript.Run(code);
@@ -490,6 +492,14 @@ namespace Golfscript
                 var separator = first.GetString();
                 var split = second.GetString().Split(separator);
                 var value = split.Where(str => str.Length > 0).Select(str => new StringItem(str));
+                result = new ArrayItem(value);
+            }
+            // TODO: Array implementation
+            else if (tuple == (ItemType.Array, ItemType.Array))
+            {
+                var separator = first.GetArray();
+                var split = second.GetArray().Split(separator);
+                var value = split.Where(arr => arr.Any()).Select(str => new ArrayItem(str));
                 result = new ArrayItem(value);
             }
             else if (tuple == (ItemType.Block, ItemType.Array))
@@ -1046,7 +1056,7 @@ namespace Golfscript
                 if (context.Size == 0)
                     return;
 
-                //var second = context.Pop();
+                var second = context.Pop();
                 // TODO: Mapping sort
                 //if (second.Type == ItemType.String)
                 //{
@@ -1184,6 +1194,76 @@ namespace Golfscript
 
                     context.Golfscript.Run(body);
                 }
+            }
+        }
+
+
+        internal static void Zip(Stack context)
+        {
+            if (context.Size == 0)
+                return;
+
+            var first = context.Pop();
+
+            if (first.Type != ItemType.Array)
+            {
+                Console.WriteLine("It must be an array");
+                return;
+            }
+
+            var matrix = first.GetArray();
+
+            if (ItemType.Array.MatchAll(matrix.ToArray()))
+            {
+                var columnCount = matrix.Count;
+                var rowCount = (int)matrix.Max(row => row.Size);
+
+                var rows = new List<List<Item>>(rowCount);
+
+                for (int i = 0; i < rowCount; i++)
+                    rows.Add(new List<Item>(matrix.Count));
+
+                for (int i = 0; i < columnCount; i++)
+                {
+                    var row = matrix[i].GetArray();
+                    for (int j = 0; j < row.Count; j++)
+                    {
+                        var item = row[j];
+                        rows[j].Add(item);
+                    }
+                }
+
+                context.PushFrame();
+                for (int i = 0; i < rowCount; i++)
+                    context.Push(new ArrayItem(rows[i]));
+
+                context.PopFrame(true);
+            }
+            else if (ItemType.String.MatchAll(matrix.ToArray()))
+            {
+                var columnCount = matrix.Count;
+                var rowCount = (int)matrix.Max(row => row.Size);
+
+                var rows = new List<StringBuilder>(rowCount);
+
+                for (int i = 0; i < rowCount; i++)
+                    rows.Add(new StringBuilder(matrix.Count));
+
+                for (int i = 0; i < columnCount; i++)
+                {
+                    var row = matrix[i].GetString();
+                    for (int j = 0; j < row.Length; j++)
+                    {
+                        var item = row[j];
+                        rows[j].Append(item);
+                    }
+                }
+
+                context.PushFrame();
+                for (int i = 0; i < rowCount; i++)
+                    context.Push(new StringItem(rows[i].ToString()));
+
+                context.PopFrame(true);
             }
         }
 
