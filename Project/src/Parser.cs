@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -129,10 +130,11 @@ namespace Golfscript
         static string ParseString(string code)
         {
             var sb = new StringBuilder(code, 1, code.Length - 2, code.Length);
+
             foreach (var item in Escaped)
                 sb.Replace(item.Key, item.Value);
 
-            foreach (Match match in EscapedRegex.Matches(sb.ToString()))
+            foreach (Match match in EscapedRegex.Matches(sb.ToString()).Reverse())
             {
                 var hex = match.Groups["Hex"];
                 var octal = match.Groups["Oct"];
@@ -151,6 +153,7 @@ namespace Golfscript
                     sb.Insert(match.Index, (char)_byte);
                 }
             }
+
             return sb.ToString();
         }
 

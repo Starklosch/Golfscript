@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using Golfscript;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Transactions;
 
-namespace Golfscript
+namespace Golfscript.src.Helpers
 {
-    static class Extensions
+    static class EnumerableHelpers
     {
         public static IEnumerable<T> Difference<T>(this IEnumerable<T> left, IEnumerable<T> right)
         {
@@ -16,7 +17,7 @@ namespace Golfscript
             }
         }
 
-        public static IEnumerable<int> FindAll<T>(this List<T> left, List<T> right, int offset = 0)
+        public static IEnumerable<int> FindAll<T>(this IList<T> left, IList<T> right, int offset = 0)
         {
             int match = 0;
             for (int i = 0; i < left.Count; i++)
@@ -32,7 +33,7 @@ namespace Golfscript
         }
 
 
-        public static IEnumerable<IEnumerable<T>> Split<T>(this List<T> left, List<T> right)
+        public static IEnumerable<IEnumerable<T>> Split<T>(this List<T> left, IList<T> right)
         {
             int start = 0;
             foreach (var index in left.FindAll(right))
@@ -48,40 +49,6 @@ namespace Golfscript
             var union = left.Union(right);
             var intersection = left.Intersect(right);
             return union.Except(intersection);
-        }
-
-        public static string Union(this string left, string right)
-        {
-            return string.Join("", (left + right).Distinct());
-        }
-
-        public static string Difference(this string left, string right)
-        {
-            var sb = new StringBuilder();
-            foreach (var item in left)
-            {
-                if (!right.Contains(item))
-                    sb.Append(item);
-            }
-            return sb.ToString();
-        }
-
-        public static string Intersect(this string left, string right)
-        {
-            var sb = new StringBuilder();
-            foreach (var item in left)
-            {
-                if (right.Contains(item))
-                    sb.Append(item);
-            }
-            return sb.ToString();
-        }
-
-        public static string SymmetricDifference(this string left, string right)
-        {
-            var union = left.Union(right);
-            var intersection = left.Intersect(right);
-            return union.Difference(intersection);
         }
 
         public static string Format<T>(this IEnumerable<T> array)

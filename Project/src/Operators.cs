@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Golfscript.src.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -8,31 +9,13 @@ using System.Text;
 
 namespace Golfscript
 {
-    class ItemComparer : IComparer<Item>
-    {
-        public int Compare(Item? x, Item? y)
-        {
-            if (ReferenceEquals(x, y) || x == null || y == null)
-                return 0;
-
-            if (x.Type != y.Type)
-                return 0;
-
-            if (x.Type == ItemType.Integer)
-                return ((BigInteger)x.Value).CompareTo((BigInteger)y.Value);
-            else if (x.Type == ItemType.String || x.Type == ItemType.Block)
-                return ((string)x.Value).CompareTo((string)y.Value);
-
-            return 0;
-        }
-    }
 
     // Ordered naming: First is at the top of the stack
     // and last at the bottom of the stack
     static class Operators
     {
         static readonly IComparer<char> CharComparer = Comparer<char>.Default;
-        static readonly IComparer<Item> ItemComparer = new ItemComparer();
+        static readonly ItemComparer ItemComparer = new ItemComparer();
         static readonly Random RNG = new Random();
 
         static string Sort(string item)
@@ -487,6 +470,7 @@ namespace Golfscript
                 var value = second.GetInt() % first.GetInt();
                 result = new IntegerItem(value);
             }
+            // Split
             else if (tuple == (ItemType.String, ItemType.String))
             {
                 var separator = first.GetString();
@@ -494,12 +478,25 @@ namespace Golfscript
                 var value = split.Where(str => str.Length > 0).Select(str => new StringItem(str));
                 result = new ArrayItem(value);
             }
-            // TODO: Array implementation
             else if (tuple == (ItemType.Array, ItemType.Array))
             {
                 var separator = first.GetArray();
                 var split = second.GetArray().Split(separator);
                 var value = split.Where(arr => arr.Any()).Select(str => new ArrayItem(str));
+                result = new ArrayItem(value);
+            }
+            // TODO: Select
+            else if (tuple == (ItemType.Array, ItemType.Integer))
+            {
+                var mod = second.GetInt();
+                var array = first.GetArray();
+                IEnumerable<Item> enumerable = array;
+                if (mod < 0)
+                {
+                    mod = -mod;
+                    enumerable = enumerable.Reverse();
+                }
+                var value = enumerable.Where((item, index) => index % mod == 0);
                 result = new ArrayItem(value);
             }
             else if (tuple == (ItemType.Block, ItemType.Array))
@@ -539,6 +536,7 @@ namespace Golfscript
             }
             // TODO: Compare arrays
             //else if (tuple == (ItemType.Array, ItemType.Array))
+            //}
             else if (tuple == (ItemType.String, ItemType.Integer))
             {
                 var position = (int)second.GetInt();
@@ -681,8 +679,8 @@ namespace Golfscript
             }
             else if (tuple == (ItemType.String, ItemType.String) || tuple == (ItemType.Block, ItemType.Block))
             {
-                var value = second.GetString().CompareTo(first.GetString());
-                context.Push(new IntegerItem(value == 0 ? 1 : 0));
+                var value = second.GetString() == first.GetString();
+                context.Push(new IntegerItem(value ? 1 : 0));
             }
             else if (tuple == (ItemType.Array, ItemType.Array))
             {
@@ -695,7 +693,7 @@ namespace Golfscript
                 var firstArray = first.GetArray();
                 var secondArray = second.GetArray();
 
-                var value = firstArray.SequenceEqual(secondArray);
+                var value = firstArray.SequenceEqual(secondArray, ItemComparer);
                 context.Push(new IntegerItem(value ? 1 : 0));
             }
             else if (tuple == (ItemType.String, ItemType.Integer))
@@ -1066,8 +1064,9 @@ namespace Golfscript
                 //}
                 //else
                 //{
-                return;
+                //    return;
                 //}
+                result = second;
             }
             else if (first.Type == ItemType.Array)
             {
@@ -1241,6 +1240,7 @@ namespace Golfscript
             }
             else if (ItemType.String.MatchAll(matrix.ToArray()))
             {
+
                 var columnCount = matrix.Count;
                 var rowCount = (int)matrix.Max(row => row.Size);
 

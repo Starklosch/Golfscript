@@ -6,22 +6,20 @@ namespace Golfscript
 {
     class RegexTokenizer : ErrorReporter
     {
-        static readonly Regex Expression = new Regex("(?<EOF>[\n\r])|(?<Identifier>[a-zA-Z_][a-zA-Z0-9_]*)|(?<RawString>'(?:\\\\.|[^'])*'?)|(?<String>\"(?:\\\\.|[^\"])*\"?)|(?<Number>-?[0-9]+)|(?<Comment>(#[^\n\r]*))|.",
+        static readonly Regex Expression = new Regex("(?<EOL>\r\n|\n|\r)|(?<Identifier>[a-zA-Z_][a-zA-Z0-9_]*)|(?<RawString>'(?:\\\\.|[^'])*'?)|(?<String>\"(?:\\\\.|[^\"])*\"?)|(?<Number>-?[0-9]+)|(?<Comment>(#[^\n\r]*))|.",
                 RegexOptions.Compiled | RegexOptions.Multiline);
 
         Golfscript Context { get; }
 
-        List<Token> _tokens;
         string _buffer;
         int _start;
 
-        int line, lineStart;
+        int line = 1, lineStart;
 
         public RegexTokenizer(Golfscript context, string code)
         {
             Context = context;
             _buffer = code;
-            _tokens = new List<Token>();
         }
 
         public IEnumerable<Token> ScanTokens()
@@ -44,43 +42,41 @@ namespace Golfscript
                 return null;
             }
 
-            if (match.Groups["EOF"].Success)
+            if (match.Groups["EOL"].Success)
             {
-                lineStart = match.Index;
+                lineStart = match.Index + match.Groups["EOL"].Length - 1;
                 line++;
                 return null;
             }
 
             var value = match.Value;
             if (Context.Identifiers.Contains(value))
-                return new Token(TokenType.Identifier, value, Column, match.Index);
+                return new Token(TokenType.Identifier, value, line, Column);
 
             if (match.Groups["Number"].Success)
-                return new Token(TokenType.Number, value, Column, match.Index);
+                return new Token(TokenType.Number, value, line, Column);
 
             if (match.Groups["String"].Success)
-                return new Token(TokenType.String, value, Column, match.Index);
+                return new Token(TokenType.String, value, line, Column);
 
             if (match.Groups["RawString"].Success)
-                return new Token(TokenType.RawString, value, Column, match.Index);
+                return new Token(TokenType.RawString, value, line, Column);
 
             if (match.Groups["Comment"].Success)
-                return new Token(TokenType.Comment, value, Column, match.Index);
+                return new Token(TokenType.Comment, value, line, Column);
 
             return value[0] switch
             {
-                ' ' => new Token(TokenType.Space, value, Column, match.Index),
-                ':' => new Token(TokenType.IdentifierDeclaration, value, Column, match.Index),
-                '[' => new Token(TokenType.ArrayBeginning, value, Column, match.Index),
-                ']' => new Token(TokenType.ArrayEnding, value, Column, match.Index),
-                '{' => new Token(TokenType.BlockBeginning, value, Column, match.Index),
-                '}' => new Token(TokenType.BlockEnding, value, Column, match.Index),
-                _ => new Token(TokenType.Identifier, value, Column, match.Index),
+                ' ' => new Token(TokenType.Space, value, line, Column),
+                ':' => new Token(TokenType.IdentifierDeclaration, value, line, Column),
+                '[' => new Token(TokenType.ArrayBeginning, value, line, Column),
+                ']' => new Token(TokenType.ArrayEnding, value, line, Column),
+                '{' => new Token(TokenType.BlockBeginning, value, line, Column),
+                '}' => new Token(TokenType.BlockEnding, value, line, Column),
+                _ => new Token(TokenType.Identifier, value, line, Column),
             };
         }
 
         int Column => _start - lineStart;
-
-        public IReadOnlyList<Token> Tokens => _tokens;
     }
 }
