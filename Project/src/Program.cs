@@ -11,8 +11,6 @@ namespace Golfscript
 
         static void Main(string[] args)
         {
-            //Format();
-
             if (args.Length > 0)
             {
                 InterpretFile(args);

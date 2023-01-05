@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Text;
 
-namespace Golfscript.src.Helpers
+namespace Golfscript.Helpers
 {
     internal static class StringHelpers
     {

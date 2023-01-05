@@ -1,4 +1,4 @@
-﻿using Golfscript.src.Helpers;
+﻿using Golfscript.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -534,9 +534,29 @@ namespace Golfscript
                 var value = second.GetString().CompareTo(first.GetString());
                 context.Push(new IntegerItem(value == -1 ? 1 : 0));
             }
-            // TODO: Compare arrays
-            //else if (tuple == (ItemType.Array, ItemType.Array))
-            //}
+            else if (tuple == (ItemType.Array, ItemType.Array))
+            {
+                if (second.Size != first.Size)
+                {
+                    context.Push(new IntegerItem(second.Size < first.Size ? 1 : 0));
+                    return;
+                }
+
+                var firstArray = first.GetArray();
+                var secondArray = second.GetArray();
+
+                for (int i = 0; i < secondArray.Count; i++)
+                {
+                    var comparison = ItemComparer.Compare(secondArray[i], firstArray[i]);
+                    if (comparison != 0)
+                    {
+                        context.Push(new IntegerItem(comparison == -1 ? 1 : 0));
+                        return;
+                    }
+                }
+
+                context.Push(new IntegerItem(0));
+            }
             else if (tuple == (ItemType.String, ItemType.Integer))
             {
                 var position = (int)second.GetInt();
@@ -582,10 +602,6 @@ namespace Golfscript
 
                 context.Push(new ArrayItem(value));
             }
-            else
-            {
-                return;
-            }
         }
 
         internal static void Greater(Stack context)
@@ -608,9 +624,29 @@ namespace Golfscript
                 var value = second.GetString().CompareTo(first.GetString());
                 context.Push(new IntegerItem(value == 1 ? 1 : 0));
             }
-            // TODO: Compare arrays
-            //else if (tuple == (ItemType.Array, ItemType.Array)){
-            //}
+            else if (tuple == (ItemType.Array, ItemType.Array))
+            {
+                if (second.Size != first.Size)
+                {
+                    context.Push(new IntegerItem(second.Size > first.Size ? 1 : 0));
+                    return;
+                }
+
+                var firstArray = first.GetArray();
+                var secondArray = second.GetArray();
+
+                for (int i = 0; i < secondArray.Count; i++)
+                {
+                    var comparison = ItemComparer.Compare(secondArray[i], firstArray[i]);
+                    if (comparison != 0)
+                    {
+                        context.Push(new IntegerItem(comparison == 1 ? 1 : 0));
+                        return;
+                    }
+                }
+
+                context.Push(new IntegerItem(0));
+            }
             else if (tuple == (ItemType.String, ItemType.Integer))
             {
                 var position = (int)second.GetInt();
@@ -655,10 +691,6 @@ namespace Golfscript
                     value = array.TakeLast(Math.Min(-position, array.Count));
 
                 context.Push(new ArrayItem(value));
-            }
-            else
-            {
-                return;
             }
         }
 
@@ -736,10 +768,6 @@ namespace Golfscript
                 Item value = array.ElementAt(index);
                 context.Push(value);
             }
-            else
-            {
-                return;
-            }
         }
 
         internal static void Pow(Stack context)
@@ -786,17 +814,12 @@ namespace Golfscript
                         break;
                     }
                 }
-                return;
             }
             else if (first.Type == ItemType.Array)
             {
                 var array = first.GetArray();
                 var index = array.IndexOf(second);
                 context.Push(new IntegerItem(index));
-            }
-            else
-            {
-                return;
             }
         }
 
@@ -1094,7 +1117,6 @@ namespace Golfscript
         {
             if (context.Size == 0)
                 return;
-
 
             var first = context.Pop();
 
